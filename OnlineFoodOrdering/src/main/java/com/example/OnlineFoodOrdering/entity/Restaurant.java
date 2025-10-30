@@ -1,7 +1,7 @@
 package com.example.OnlineFoodOrdering.entity;
 
 
-
+import com.example.OnlineFoodOrdering.entity.*;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;

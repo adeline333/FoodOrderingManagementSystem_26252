@@ -1,6 +1,6 @@
 package com.example.OnlineFoodOrdering.entity;
 
-
+import com.example.OnlineFoodOrdering.entity.*;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;

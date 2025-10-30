@@ -1,5 +1,5 @@
 package com.example.OnlineFoodOrdering.entity;
-
+import com.example.OnlineFoodOrdering.entity.*;
 
 
 import jakarta.persistence.*;
