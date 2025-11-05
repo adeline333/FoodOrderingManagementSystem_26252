@@ -3,15 +3,24 @@ package com.example.OnlineFoodOrdering.service;
 
 
 
-import com.example.OnlineFoodOrdering.entity.*;
-import com.example.OnlineFoodOrdering.repository.*;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import com.example.OnlineFoodOrdering.entity.Cell;
+import com.example.OnlineFoodOrdering.entity.District;
+import com.example.OnlineFoodOrdering.entity.Province;
+import com.example.OnlineFoodOrdering.entity.Sector;
+import com.example.OnlineFoodOrdering.entity.Village;
+import com.example.OnlineFoodOrdering.repository.CellRepository;
+import com.example.OnlineFoodOrdering.repository.DistrictRepository;
+import com.example.OnlineFoodOrdering.repository.ProvinceRepository;
+import com.example.OnlineFoodOrdering.repository.SectorRepository;
+import com.example.OnlineFoodOrdering.repository.VillageRepository;
 
 @Service
 public class LocationService {

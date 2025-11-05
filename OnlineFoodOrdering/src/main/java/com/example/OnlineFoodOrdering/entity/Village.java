@@ -1,6 +1,7 @@
 package com.example.OnlineFoodOrdering.entity;
 
-import com.example.OnlineFoodOrdering.entity.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -27,6 +28,7 @@ public class Village {
     // MANY-TO-ONE: Village → Cell
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cell_id", nullable = false)
+
     private Cell cell;
     
     // Constructors
