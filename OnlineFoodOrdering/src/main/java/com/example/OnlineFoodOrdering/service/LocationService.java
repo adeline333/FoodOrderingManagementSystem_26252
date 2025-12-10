@@ -1,120 +1,208 @@
 package com.example.OnlineFoodOrdering.service;
 
-
-
-
-import java.util.List;
-import java.util.Optional;
-
+import com.example.OnlineFoodOrdering.entity.Location;
+import com.example.OnlineFoodOrdering.repository.LocationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.example.OnlineFoodOrdering.entity.Cell;
-import com.example.OnlineFoodOrdering.entity.District;
-import com.example.OnlineFoodOrdering.entity.Province;
-import com.example.OnlineFoodOrdering.entity.Sector;
-import com.example.OnlineFoodOrdering.entity.Village;
-import com.example.OnlineFoodOrdering.repository.CellRepository;
-import com.example.OnlineFoodOrdering.repository.DistrictRepository;
-import com.example.OnlineFoodOrdering.repository.ProvinceRepository;
-import com.example.OnlineFoodOrdering.repository.SectorRepository;
-import com.example.OnlineFoodOrdering.repository.VillageRepository;
+import java.util.List;
+import java.util.Optional;
 
 @Service
+@Transactional
 public class LocationService {
     
     @Autowired
-    private ProvinceRepository provinceRepository;
+    private LocationRepository locationRepository;
     
-    @Autowired
-    private DistrictRepository districtRepository;
+    // ========== CREATE ==========
     
-    @Autowired
-    private SectorRepository sectorRepository;
-    
-    @Autowired
-    private CellRepository cellRepository;
-    
-    @Autowired
-    private VillageRepository villageRepository;
-    
-    // Province methods
-    public Province createProvince(Province province) {
-        return provinceRepository.save(province);
+    public Location createLocation(Location location) {
+        // Validate parent if provided
+        if (location.getParent() != null && location.getParent().getId() != null) {
+            Location parent = locationRepository.findById(location.getParent().getId())
+                .orElseThrow(() -> new RuntimeException("Parent location not found with ID: " + location.getParent().getId()));
+            location.setParent(parent);
+        }
+        
+        // Validate code uniqueness
+        if (locationRepository.existsByCode(location.getCode())) {
+            throw new RuntimeException("Location with code '" + location.getCode() + "' already exists");
+        }
+        
+        return locationRepository.save(location);
     }
     
-    public List<Province> getAllProvinces() {
-        return provinceRepository.findAll();
+    // ========== READ ==========
+    
+    public List<Location> getAllLocations() {
+        return locationRepository.findAll();
     }
     
-    public Page<Province> getAllProvinces(Pageable pageable) {
-        return provinceRepository.findAll(pageable);
+    public Page<Location> getAllLocations(Pageable pageable) {
+        return locationRepository.findAll(pageable);
     }
     
-    public Optional<Province> getProvinceById(Long id) {
-        return provinceRepository.findById(id);
+    public Optional<Location> getLocationById(Long id) {
+        return locationRepository.findById(id);
     }
     
-    public Optional<Province> getProvinceByCode(String code) {
-        return provinceRepository.findByCode(code);
+    public Location getLocationByIdOrThrow(Long id) {
+        return locationRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Location not found with ID: " + id));
     }
     
-    public Optional<Province> getProvinceByName(String name) {
-        return provinceRepository.findByName(name);
+    public Optional<Location> getLocationByCode(String code) {
+        return locationRepository.findByCode(code);
     }
     
-    public void deleteProvince(Long id) {
-        provinceRepository.deleteById(id);
+    public Optional<Location> getLocationByName(String name) {
+        return locationRepository.findByName(name);
     }
     
-    // District methods
-    public District createDistrict(District district) {
-        return districtRepository.save(district);
+    public List<Location> searchLocations(String searchTerm) {
+        return locationRepository.searchLocations(searchTerm);
     }
     
-    public List<District> getDistrictsByProvince(Long provinceId) {
-        return districtRepository.findByProvinceId(provinceId);
+    // ========== BY TYPE ==========
+    
+    public List<Location> getLocationsByType(Location.LocationType type) {
+        return locationRepository.findByType(type);
     }
     
-    public List<District> getDistrictsByProvinceName(String provinceName) {
-        return districtRepository.findByProvinceName(provinceName);
+    public Page<Location> getLocationsByType(Location.LocationType type, Pageable pageable) {
+        return locationRepository.findByType(type, pageable);
     }
     
-    // Sector methods
-    public List<Sector> getSectorsByDistrict(Long districtId) {
-        return sectorRepository.findByDistrictId(districtId);
+    // ========== PROVINCES ==========
+    
+    public List<Location> getAllProvinces() {
+        return locationRepository.findAllProvinces();
     }
     
-    public List<Sector> getAllSectors() {
-        return sectorRepository.findAll();
+    public Location createProvince(String code, String name) {
+        Location province = new Location(code, name, Location.LocationType.PROVINCE);
+        return createLocation(province);
     }
     
-    // Cell methods
-    public List<Cell> getCellsBySector(Long sectorId) {
-        return cellRepository.findBySectorId(sectorId);
+    // ========== DISTRICTS ==========
+    
+    public List<Location> getDistrictsByProvince(Long provinceId) {
+        return locationRepository.findDistrictsByProvinceId(provinceId);
     }
     
-    public List<Cell> getAllCells() {
-        return cellRepository.findAll();
+    public Location createDistrict(String code, String name, Long provinceId) {
+        Location province = getLocationByIdOrThrow(provinceId);
+        if (province.getType() != Location.LocationType.PROVINCE) {
+            throw new RuntimeException("Parent must be a PROVINCE");
+        }
+        Location district = new Location(code, name, Location.LocationType.DISTRICT, province);
+        return createLocation(district);
     }
     
-    // Village methods
-    public List<Village> getVillagesByCell(Long cellId) {
-        return villageRepository.findByCellId(cellId);
+    // ========== SECTORS ==========
+    
+    public List<Location> getSectorsByDistrict(Long districtId) {
+        return locationRepository.findSectorsByDistrictId(districtId);
     }
     
-    public List<Village> getAllVillages() {
-        return villageRepository.findAll();
+    public Location createSector(String code, String name, Long districtId) {
+        Location district = getLocationByIdOrThrow(districtId);
+        if (district.getType() != Location.LocationType.DISTRICT) {
+            throw new RuntimeException("Parent must be a DISTRICT");
+        }
+        Location sector = new Location(code, name, Location.LocationType.SECTOR, district);
+        return createLocation(sector);
     }
     
-    // REQUIRED: Get villages by province
-    public List<Village> getVillagesByProvinceName(String provinceName) {
-        return villageRepository.findByProvinceName(provinceName);
+    // ========== CELLS ==========
+    
+    public List<Location> getCellsBySector(Long sectorId) {
+        return locationRepository.findCellsBySectorId(sectorId);
     }
     
-    public List<Village> getVillagesByProvinceCode(String provinceCode) {
-        return villageRepository.findByProvinceCode(provinceCode);
+    public Location createCell(String code, String name, Long sectorId) {
+        Location sector = getLocationByIdOrThrow(sectorId);
+        // 🐛 BUG FIX: Changed from Location.LocationType.CELL to Location.LocationType.SECTOR
+        if (sector.getType() != Location.LocationType.SECTOR) {
+            throw new RuntimeException("Parent must be a SECTOR");
+        }
+        Location cell = new Location(code, name, Location.LocationType.CELL, sector);
+        return createLocation(cell);
+    }
+    
+    // ========== VILLAGES ==========
+    
+    public List<Location> getVillagesByCell(Long cellId) {
+        return locationRepository.findVillagesByCellId(cellId);
+    }
+    
+    public Location createVillage(String code, String name, Long cellId) {
+        Location cell = getLocationByIdOrThrow(cellId);
+        if (cell.getType() != Location.LocationType.CELL) {
+            throw new RuntimeException("Parent must be a CELL");
+        }
+        Location village = new Location(code, name, Location.LocationType.VILLAGE, cell);
+        return createLocation(village);
+    }
+    
+    // ========== HIERARCHY ==========
+    
+    public List<Location> getChildren(Long parentId) {
+        return locationRepository.findByParentIdOrderByNameAsc(parentId);
+    }
+    
+    public Location getProvince(Long locationId) {
+        return locationRepository.findProvinceByLocationId(locationId);
+    }
+    
+    public List<Location> getAllInProvince(Long provinceId) {
+        return locationRepository.findAllInProvince(provinceId);
+    }
+    
+    // ========== UPDATE ==========
+    
+    public Location updateLocation(Long id, Location updatedLocation) {
+        Location location = getLocationByIdOrThrow(id);
+        
+        location.setName(updatedLocation.getName());
+        location.setCode(updatedLocation.getCode());
+        
+        // Update parent if provided
+        if (updatedLocation.getParent() != null && updatedLocation.getParent().getId() != null) {
+            Location parent = getLocationByIdOrThrow(updatedLocation.getParent().getId());
+            location.setParent(parent);
+        }
+        
+        return locationRepository.save(location);
+    }
+    
+    // ========== DELETE ==========
+    
+    public void deleteLocation(Long id) {
+        if (!locationRepository.existsById(id)) {
+            throw new RuntimeException("Location not found with ID: " + id);
+        }
+        
+        // Check if location has children
+        Long childCount = locationRepository.countByParentId(id);
+        if (childCount > 0) {
+            throw new RuntimeException("Cannot delete location with children. Delete children first.");
+        }
+        
+        locationRepository.deleteById(id);
+    }
+    
+    // ========== STATISTICS ==========
+    
+    public Long countChildren(Long parentId) {
+        return locationRepository.countByParentId(parentId);
+    }
+    
+    public boolean existsByCode(String code) {
+        return locationRepository.existsByCode(code);
     }
 }
