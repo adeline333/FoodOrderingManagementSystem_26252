@@ -1,7 +1,5 @@
 package com.example.OnlineFoodOrdering.repository;
 
-
-
 import com.example.OnlineFoodOrdering.entity.Restaurant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,28 +13,72 @@ import java.util.Optional;
 
 @Repository
 public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
-    // Derived query methods
+    
+    // Basic queries
     Optional<Restaurant> findByName(String name);
     boolean existsByName(String name);
     List<Restaurant> findByNameContainingIgnoreCase(String name);
     List<Restaurant> findByOwnerId(Long ownerId);
     
-    // Location-based queries
-    List<Restaurant> findByVillageId(Long villageId);
-    List<Restaurant> findByVillageName(String villageName);
-    List<Restaurant> findByVillageCellSectorDistrictProvinceName(String provinceName);
-    List<Restaurant> findByVillageCellSectorDistrictProvinceCode(String provinceCode);
+    // UPDATED: Location-based queries using new Location entity
     
-    // Sorting and Pagination
+    // Find by specific location
+    List<Restaurant> findByLocationId(Long locationId);
+    
+    // Find by location name
+    @Query("SELECT r FROM Restaurant r WHERE r.location.name = :locationName")
+    List<Restaurant> findByLocationName(@Param("locationName") String locationName);
+    
+    // Find restaurants in a province (when location is any level in that province)
+    @Query("SELECT r FROM Restaurant r WHERE " +
+           "r.location.id = :provinceId OR " +
+           "r.location.parent.id = :provinceId OR " +
+           "r.location.parent.parent.id = :provinceId OR " +
+           "r.location.parent.parent.parent.id = :provinceId OR " +
+           "r.location.parent.parent.parent.parent.id = :provinceId")
+    List<Restaurant> findByProvinceId(@Param("provinceId") Long provinceId);
+    
+    // Find restaurants by province name
+    @Query("SELECT r FROM Restaurant r WHERE " +
+           "(r.location.type = 'PROVINCE' AND r.location.name = :provinceName) OR " +
+           "(r.location.type = 'DISTRICT' AND r.location.parent.name = :provinceName) OR " +
+           "(r.location.type = 'SECTOR' AND r.location.parent.parent.name = :provinceName) OR " +
+           "(r.location.type = 'CELL' AND r.location.parent.parent.parent.name = :provinceName) OR " +
+           "(r.location.type = 'VILLAGE' AND r.location.parent.parent.parent.parent.name = :provinceName)")
+    List<Restaurant> findByProvinceName(@Param("provinceName") String provinceName);
+    
+    // Find restaurants by province code
+    @Query("SELECT r FROM Restaurant r WHERE " +
+           "(r.location.type = 'PROVINCE' AND r.location.code = :provinceCode) OR " +
+           "(r.location.type = 'DISTRICT' AND r.location.parent.code = :provinceCode) OR " +
+           "(r.location.type = 'SECTOR' AND r.location.parent.parent.code = :provinceCode) OR " +
+           "(r.location.type = 'CELL' AND r.location.parent.parent.parent.code = :provinceCode) OR " +
+           "(r.location.type = 'VILLAGE' AND r.location.parent.parent.parent.parent.code = :provinceCode)")
+    List<Restaurant> findByProvinceCode(@Param("provinceCode") String provinceCode);
+    
+    // Pagination
     Page<Restaurant> findByNameContainingIgnoreCase(String name, Pageable pageable);
-    Page<Restaurant> findByVillageCellSectorDistrictProvinceName(String provinceName, Pageable pageable);
     
-    // Custom queries
+    @Query("SELECT r FROM Restaurant r WHERE " +
+           "(r.location.type = 'PROVINCE' AND r.location.name = :provinceName) OR " +
+           "(r.location.type = 'DISTRICT' AND r.location.parent.name = :provinceName) OR " +
+           "(r.location.type = 'SECTOR' AND r.location.parent.parent.name = :provinceName) OR " +
+           "(r.location.type = 'CELL' AND r.location.parent.parent.parent.name = :provinceName) OR " +
+           "(r.location.type = 'VILLAGE' AND r.location.parent.parent.parent.parent.name = :provinceName)")
+    Page<Restaurant> findByProvinceName(@Param("provinceName") String provinceName, Pageable pageable);
+    
+    // Search restaurants
     @Query("SELECT r FROM Restaurant r WHERE " +
            "LOWER(r.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
            "LOWER(r.description) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
     List<Restaurant> searchRestaurants(@Param("searchTerm") String searchTerm);
     
-    @Query("SELECT COUNT(r) FROM Restaurant r WHERE r.village.cell.sector.district.province.id = :provinceId")
+    // Count restaurants in province
+    @Query("SELECT COUNT(r) FROM Restaurant r WHERE " +
+           "r.location.id = :provinceId OR " +
+           "r.location.parent.id = :provinceId OR " +
+           "r.location.parent.parent.id = :provinceId OR " +
+           "r.location.parent.parent.parent.id = :provinceId OR " +
+           "r.location.parent.parent.parent.parent.id = :provinceId")
     Long countByProvinceId(@Param("provinceId") Long provinceId);
 }
