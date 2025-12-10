@@ -1,6 +1,5 @@
 package com.example.OnlineFoodOrdering.service;
 
-
 import com.example.OnlineFoodOrdering.entity.User;
 import com.example.OnlineFoodOrdering.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,12 +16,14 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
     
-    // CREATE
+    // ========== CREATE ==========
+    
     public User createUser(User user) {
         return userRepository.save(user);
     }
     
-    // READ
+    // ========== READ ==========
+    
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
@@ -39,17 +40,40 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
     
-    // UPDATE
+    // ========== UPDATE ==========
+    
     public User updateUser(User user) {
         return userRepository.save(user);
     }
     
-    // DELETE
+    // ========== DELETE ==========
+    
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
     
-    // REQUIRED: Get users by province
+    // ========== LOCATION-BASED QUERIES ==========
+    
+    // By location ID
+    public List<User> getUsersByLocation(Long locationId) {
+        return userRepository.findByLocationId(locationId);
+    }
+    
+    // By location code
+    public List<User> getUsersByLocationCode(String locationCode) {
+        return userRepository.findByLocationCode(locationCode);
+    }
+    
+    // By location name
+    public List<User> getUsersByLocationName(String locationName) {
+        return userRepository.findByLocationName(locationName);
+    }
+    
+    // By province
+    public List<User> getUsersByProvinceId(Long provinceId) {
+        return userRepository.findByProvinceId(provinceId);
+    }
+    
     public List<User> getUsersByProvinceCode(String provinceCode) {
         return userRepository.findByProvinceCode(provinceCode);
     }
@@ -58,7 +82,18 @@ public class UserService {
         return userRepository.findByProvinceName(provinceName);
     }
     
-    // Additional business methods
+    // By district
+    public List<User> getUsersByDistrictName(String districtName) {
+        return userRepository.findByDistrictName(districtName);
+    }
+    
+    // By sector
+    public List<User> getUsersBySectorName(String sectorName) {
+        return userRepository.findBySectorName(sectorName);
+    }
+    
+    // ========== ROLE-BASED QUERIES ==========
+    
     public List<User> getUsersByRole(User.UserRole role) {
         return userRepository.findByRole(role);
     }
@@ -67,9 +102,17 @@ public class UserService {
         return userRepository.findByRole(role, pageable);
     }
     
+    // ========== VALIDATION ==========
+    
     public boolean emailExists(String email) {
         return userRepository.existsByEmail(email);
     }
+    
+    public boolean emailExistsInProvince(String email, String provinceName) {
+        return userRepository.existsByEmailAndProvinceName(email, provinceName);
+    }
+    
+    // ========== SEARCH ==========
     
     public List<User> searchUsersByName(String name) {
         return userRepository.findByFirstNameContainingIgnoreCase(name);
