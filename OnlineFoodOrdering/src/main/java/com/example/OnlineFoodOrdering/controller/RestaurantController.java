@@ -1,6 +1,5 @@
 package com.example.OnlineFoodOrdering.controller;
 
-
 import com.example.OnlineFoodOrdering.entity.Restaurant;
 import com.example.OnlineFoodOrdering.service.RestaurantService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,19 +20,20 @@ public class RestaurantController {
     @Autowired
     private RestaurantService restaurantService;
     
-    // CREATE
+    // ========== CREATE ==========
+    
     @PostMapping
     public Restaurant createRestaurant(@RequestBody Restaurant restaurant) {
         return restaurantService.createRestaurant(restaurant);
     }
     
-    // READ ALL
+    // ========== READ ==========
+    
     @GetMapping
     public List<Restaurant> getAllRestaurants() {
         return restaurantService.getAllRestaurants();
     }
     
-    // READ ALL WITH PAGINATION
     @GetMapping("/paginated")
     public Page<Restaurant> getAllRestaurantsPaginated(
             @RequestParam(defaultValue = "0") int page,
@@ -42,7 +42,6 @@ public class RestaurantController {
         return restaurantService.getAllRestaurants(pageable);
     }
     
-    // READ BY ID
     @GetMapping("/{id}")
     public ResponseEntity<Restaurant> getRestaurantById(@PathVariable Long id) {
         Optional<Restaurant> restaurant = restaurantService.getRestaurantById(id);
@@ -50,7 +49,8 @@ public class RestaurantController {
                         .orElse(ResponseEntity.notFound().build());
     }
     
-    // UPDATE
+    // ========== UPDATE ==========
+    
     @PutMapping("/{id}")
     public ResponseEntity<Restaurant> updateRestaurant(@PathVariable Long id, @RequestBody Restaurant restaurantDetails) {
         Optional<Restaurant> optionalRestaurant = restaurantService.getRestaurantById(id);
@@ -60,6 +60,7 @@ public class RestaurantController {
             restaurant.setDescription(restaurantDetails.getDescription());
             restaurant.setAddress(restaurantDetails.getAddress());
             restaurant.setPhone(restaurantDetails.getPhone());
+            restaurant.setLocation(restaurantDetails.getLocation()); // UPDATED: Changed from setVillage
             
             Restaurant updatedRestaurant = restaurantService.updateRestaurant(restaurant);
             return ResponseEntity.ok(updatedRestaurant);
@@ -67,7 +68,8 @@ public class RestaurantController {
         return ResponseEntity.notFound().build();
     }
     
-    // DELETE
+    // ========== DELETE ==========
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRestaurant(@PathVariable Long id) {
         if (restaurantService.getRestaurantById(id).isPresent()) {
@@ -77,21 +79,51 @@ public class RestaurantController {
         return ResponseEntity.notFound().build();
     }
     
-    // GET RESTAURANTS BY OWNER
+    // ========== OWNER-BASED QUERIES ==========
+    
     @GetMapping("/owner/{ownerId}")
     public List<Restaurant> getRestaurantsByOwner(@PathVariable Long ownerId) {
         return restaurantService.getRestaurantsByOwner(ownerId);
     }
     
-    // GET RESTAURANTS BY PROVINCE
-    @GetMapping("/province/{provinceName}")
-    public List<Restaurant> getRestaurantsByProvince(@PathVariable String provinceName) {
+    // ========== LOCATION-BASED QUERIES ==========
+    
+    @GetMapping("/location/{locationId}")
+    public List<Restaurant> getRestaurantsByLocation(@PathVariable Long locationId) {
+        return restaurantService.getRestaurantsByLocation(locationId);
+    }
+    
+    @GetMapping("/location/name/{locationName}")
+    public List<Restaurant> getRestaurantsByLocationName(@PathVariable String locationName) {
+        return restaurantService.getRestaurantsByLocationName(locationName);
+    }
+    
+    @GetMapping("/province/{provinceId}")
+    public List<Restaurant> getRestaurantsByProvinceId(@PathVariable Long provinceId) {
+        return restaurantService.getRestaurantsByProvinceId(provinceId);
+    }
+    
+    @GetMapping("/province/name/{provinceName}")
+    public List<Restaurant> getRestaurantsByProvinceName(@PathVariable String provinceName) {
         return restaurantService.getRestaurantsByProvinceName(provinceName);
     }
     
-    // SEARCH RESTAURANTS
+    @GetMapping("/province/code/{provinceCode}")
+    public List<Restaurant> getRestaurantsByProvinceCode(@PathVariable String provinceCode) {
+        return restaurantService.getRestaurantsByProvinceCode(provinceCode);
+    }
+    
+    // ========== SEARCH ==========
+    
     @GetMapping("/search/{searchTerm}")
     public List<Restaurant> searchRestaurants(@PathVariable String searchTerm) {
         return restaurantService.searchRestaurants(searchTerm);
+    }
+    
+    // ========== STATISTICS ==========
+    
+    @GetMapping("/province/{provinceId}/count")
+    public Long countRestaurantsByProvince(@PathVariable Long provinceId) {
+        return restaurantService.countRestaurantsByProvince(provinceId);
     }
 }
