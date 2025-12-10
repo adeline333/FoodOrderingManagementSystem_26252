@@ -1,7 +1,5 @@
 package com.example.OnlineFoodOrdering.repository;
 
-
-
 import com.example.OnlineFoodOrdering.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,32 +13,80 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    // Derived query methods
+    
+    // Basic queries
     Optional<User> findByEmail(String email);
     boolean existsByEmail(String email);
     List<User> findByFirstNameContainingIgnoreCase(String firstName);
     List<User> findByLastNameContainingIgnoreCase(String lastName);
     List<User> findByRole(User.UserRole role);
     
-    // Sorting and Pagination
+    // Pagination
     Page<User> findByRole(User.UserRole role, Pageable pageable);
     Page<User> findByFirstNameContainingIgnoreCase(String firstName, Pageable pageable);
     
-    // REQUIRED: Custom query for finding users by province
-    @Query("SELECT u FROM User u WHERE u.village.cell.sector.district.province.code = :provinceCode")
-    List<User> findByProvinceCode(@Param("provinceCode") String provinceCode);
+    // UPDATED: Location-based queries using new Location entity
     
-    @Query("SELECT u FROM User u WHERE u.village.cell.sector.district.province.name = :provinceName")
+    // Find by specific location
+    List<User> findByLocationId(Long locationId);
+    
+    // Find by location code
+    @Query("SELECT u FROM User u WHERE u.location.code = :locationCode")
+    List<User> findByLocationCode(@Param("locationCode") String locationCode);
+    
+    // Find by location name
+    @Query("SELECT u FROM User u WHERE u.location.name = :locationName")
+    List<User> findByLocationName(@Param("locationName") String locationName);
+    
+    // Find users in a province (when location is any level in that province)
+    @Query("SELECT u FROM User u WHERE " +
+           "u.location.id = :provinceId OR " +
+           "u.location.parent.id = :provinceId OR " +
+           "u.location.parent.parent.id = :provinceId OR " +
+           "u.location.parent.parent.parent.id = :provinceId OR " +
+           "u.location.parent.parent.parent.parent.id = :provinceId")
+    List<User> findByProvinceId(@Param("provinceId") Long provinceId);
+    
+    // Find users by province name
+    @Query("SELECT u FROM User u WHERE " +
+           "(u.location.type = 'PROVINCE' AND u.location.name = :provinceName) OR " +
+           "(u.location.type = 'DISTRICT' AND u.location.parent.name = :provinceName) OR " +
+           "(u.location.type = 'SECTOR' AND u.location.parent.parent.name = :provinceName) OR " +
+           "(u.location.type = 'CELL' AND u.location.parent.parent.parent.name = :provinceName) OR " +
+           "(u.location.type = 'VILLAGE' AND u.location.parent.parent.parent.parent.name = :provinceName)")
     List<User> findByProvinceName(@Param("provinceName") String provinceName);
     
-    // Additional location-based queries
-    @Query("SELECT u FROM User u WHERE u.village.cell.sector.district.name = :districtName")
+    // Find users by province code
+    @Query("SELECT u FROM User u WHERE " +
+           "(u.location.type = 'PROVINCE' AND u.location.code = :provinceCode) OR " +
+           "(u.location.type = 'DISTRICT' AND u.location.parent.code = :provinceCode) OR " +
+           "(u.location.type = 'SECTOR' AND u.location.parent.parent.code = :provinceCode) OR " +
+           "(u.location.type = 'CELL' AND u.location.parent.parent.parent.code = :provinceCode) OR " +
+           "(u.location.type = 'VILLAGE' AND u.location.parent.parent.parent.parent.code = :provinceCode)")
+    List<User> findByProvinceCode(@Param("provinceCode") String provinceCode);
+    
+    // Find users by district name
+    @Query("SELECT u FROM User u WHERE " +
+           "(u.location.type = 'DISTRICT' AND u.location.name = :districtName) OR " +
+           "(u.location.type = 'SECTOR' AND u.location.parent.name = :districtName) OR " +
+           "(u.location.type = 'CELL' AND u.location.parent.parent.name = :districtName) OR " +
+           "(u.location.type = 'VILLAGE' AND u.location.parent.parent.parent.name = :districtName)")
     List<User> findByDistrictName(@Param("districtName") String districtName);
     
-    @Query("SELECT u FROM User u WHERE u.village.cell.sector.name = :sectorName")
+    // Find users by sector name
+    @Query("SELECT u FROM User u WHERE " +
+           "(u.location.type = 'SECTOR' AND u.location.name = :sectorName) OR " +
+           "(u.location.type = 'CELL' AND u.location.parent.name = :sectorName) OR " +
+           "(u.location.type = 'VILLAGE' AND u.location.parent.parent.name = :sectorName)")
     List<User> findBySectorName(@Param("sectorName") String sectorName);
     
-    // Check if user exists in specific location
-    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u WHERE u.email = :email AND u.village.cell.sector.district.province.name = :provinceName")
+    // Check if user exists in specific province
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u WHERE " +
+           "u.email = :email AND (" +
+           "(u.location.type = 'PROVINCE' AND u.location.name = :provinceName) OR " +
+           "(u.location.type = 'DISTRICT' AND u.location.parent.name = :provinceName) OR " +
+           "(u.location.type = 'SECTOR' AND u.location.parent.parent.name = :provinceName) OR " +
+           "(u.location.type = 'CELL' AND u.location.parent.parent.parent.name = :provinceName) OR " +
+           "(u.location.type = 'VILLAGE' AND u.location.parent.parent.parent.parent.name = :provinceName))")
     boolean existsByEmailAndProvinceName(@Param("email") String email, @Param("provinceName") String provinceName);
 }
