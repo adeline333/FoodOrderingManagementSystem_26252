@@ -1,6 +1,5 @@
 package com.example.OnlineFoodOrdering.controller;
 
-
 import com.example.OnlineFoodOrdering.entity.User;
 import com.example.OnlineFoodOrdering.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,19 +21,20 @@ public class UserController {
     @Autowired
     private UserService userService;
     
-    // CREATE
+    // ========== CREATE ==========
+    
     @PostMapping
     public User createUser(@RequestBody User user) {
         return userService.createUser(user);
     }
     
-    // READ ALL
+    // ========== READ ==========
+    
     @GetMapping
     public List<User> getAllUsers() {
         return userService.getAllUsers();
     }
     
-    // READ ALL WITH PAGINATION AND SORTING
     @GetMapping("/paginated")
     public Page<User> getAllUsersPaginated(
             @RequestParam(defaultValue = "0") int page,
@@ -49,7 +49,6 @@ public class UserController {
         return userService.getAllUsers(pageable);
     }
     
-    // READ BY ID
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         Optional<User> user = userService.getUserById(id);
@@ -57,7 +56,6 @@ public class UserController {
                   .orElse(ResponseEntity.notFound().build());
     }
     
-    // READ BY EMAIL
     @GetMapping("/email/{email}")
     public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
         Optional<User> user = userService.getUserByEmail(email);
@@ -65,7 +63,8 @@ public class UserController {
                   .orElse(ResponseEntity.notFound().build());
     }
     
-    // UPDATE
+    // ========== UPDATE ==========
+    
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
         Optional<User> optionalUser = userService.getUserById(id);
@@ -76,7 +75,7 @@ public class UserController {
             user.setEmail(userDetails.getEmail());
             user.setPhone(userDetails.getPhone());
             user.setRole(userDetails.getRole());
-            user.setVillage(userDetails.getVillage());
+            user.setLocation(userDetails.getLocation()); // UPDATED: Changed from setVillage
             
             User updatedUser = userService.updateUser(user);
             return ResponseEntity.ok(updatedUser);
@@ -84,7 +83,8 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
     
-    // DELETE
+    // ========== DELETE ==========
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         if (userService.getUserById(id).isPresent()) {
@@ -94,25 +94,55 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
     
-    // REQUIRED: GET USERS BY PROVINCE CODE
+    // ========== LOCATION-BASED QUERIES ==========
+    
+    @GetMapping("/location/{locationId}")
+    public List<User> getUsersByLocation(@PathVariable Long locationId) {
+        return userService.getUsersByLocation(locationId);
+    }
+    
+    @GetMapping("/location/code/{locationCode}")
+    public List<User> getUsersByLocationCode(@PathVariable String locationCode) {
+        return userService.getUsersByLocationCode(locationCode);
+    }
+    
+    @GetMapping("/location/name/{locationName}")
+    public List<User> getUsersByLocationName(@PathVariable String locationName) {
+        return userService.getUsersByLocationName(locationName);
+    }
+    
+    @GetMapping("/province/{provinceId}")
+    public List<User> getUsersByProvinceId(@PathVariable Long provinceId) {
+        return userService.getUsersByProvinceId(provinceId);
+    }
+    
     @GetMapping("/province/code/{provinceCode}")
     public List<User> getUsersByProvinceCode(@PathVariable String provinceCode) {
         return userService.getUsersByProvinceCode(provinceCode);
     }
     
-    // REQUIRED: GET USERS BY PROVINCE NAME
     @GetMapping("/province/name/{provinceName}")
     public List<User> getUsersByProvinceName(@PathVariable String provinceName) {
         return userService.getUsersByProvinceName(provinceName);
     }
     
-    // GET USERS BY ROLE
+    @GetMapping("/district/name/{districtName}")
+    public List<User> getUsersByDistrictName(@PathVariable String districtName) {
+        return userService.getUsersByDistrictName(districtName);
+    }
+    
+    @GetMapping("/sector/name/{sectorName}")
+    public List<User> getUsersBySectorName(@PathVariable String sectorName) {
+        return userService.getUsersBySectorName(sectorName);
+    }
+    
+    // ========== ROLE-BASED QUERIES ==========
+    
     @GetMapping("/role/{role}")
     public List<User> getUsersByRole(@PathVariable User.UserRole role) {
         return userService.getUsersByRole(role);
     }
     
-    // GET USERS BY ROLE WITH PAGINATION
     @GetMapping("/role/{role}/paginated")
     public Page<User> getUsersByRolePaginated(
             @PathVariable User.UserRole role,
@@ -122,13 +152,15 @@ public class UserController {
         return userService.getUsersByRole(role, pageable);
     }
     
-    // CHECK IF EMAIL EXISTS
+    // ========== VALIDATION ==========
+    
     @GetMapping("/exists/email/{email}")
     public boolean checkEmailExists(@PathVariable String email) {
         return userService.emailExists(email);
     }
     
-    // SEARCH USERS BY NAME
+    // ========== SEARCH ==========
+    
     @GetMapping("/search/{name}")
     public List<User> searchUsersByName(@PathVariable String name) {
         return userService.searchUsersByName(name);
