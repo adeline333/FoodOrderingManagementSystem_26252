@@ -1,8 +1,16 @@
 package com.example.OnlineFoodOrdering.entity;
-import com.example.OnlineFoodOrdering.entity.*;
-import jakarta.persistence.*;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "users")
@@ -21,6 +29,9 @@ public class User {
     private String email;
     
     @Column(nullable = false)
+private boolean emailVerified = false;
+    
+    @Column(nullable = false)
     private String phone;
     
     @Column(nullable = false)
@@ -29,11 +40,12 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
+
     
-    // ONE-TO-ONE Relationship with Location (Village)
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "village_id")
-    private Village village;
+    // UPDATED: Changed from Village to Location
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location_id")
+    private Location location;
     
     // Constructors
     public User() {}
@@ -60,6 +72,9 @@ public class User {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     
+    public boolean isEmailVerified() { return emailVerified; }
+public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
+
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
     
@@ -69,8 +84,16 @@ public class User {
     public UserRole getRole() { return role; }
     public void setRole(UserRole role) { this.role = role; }
     
-    public Village getVillage() { return village; }
-    public void setVillage(Village village) { this.village = village; }
+    // UPDATED: Changed from getVillage/setVillage to getLocation/setLocation
+    public Location getLocation() { return location; }
+    public void setLocation(Location location) { this.location = location; }
+    
+    // Backward compatibility methods (optional - for gradual migration)
+    @Deprecated
+    public Location getVillage() { return location; }
+    
+    @Deprecated
+    public void setVillage(Location location) { this.location = location; }
     
     public enum UserRole {
         CUSTOMER, RESTAURANT_OWNER, ADMIN, DELIVERY_PERSON
