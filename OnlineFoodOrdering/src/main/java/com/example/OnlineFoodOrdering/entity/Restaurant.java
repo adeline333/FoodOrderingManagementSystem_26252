@@ -1,7 +1,5 @@
 package com.example.OnlineFoodOrdering.entity;
 
-
-import com.example.OnlineFoodOrdering.entity.*;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,10 +28,10 @@ public class Restaurant {
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
     
-    // ONE-TO-ONE Relationship with Location
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "village_id")
-    private Village village;
+    // UPDATED: Changed from Village to Location
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location_id")
+    private Location location;
     
     // ONE-TO-MANY Relationship with MenuItem
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -69,8 +67,16 @@ public class Restaurant {
     public User getOwner() { return owner; }
     public void setOwner(User owner) { this.owner = owner; }
     
-    public Village getVillage() { return village; }
-    public void setVillage(Village village) { this.village = village; }
+    // UPDATED: Changed from getVillage/setVillage to getLocation/setLocation
+    public Location getLocation() { return location; }
+    public void setLocation(Location location) { this.location = location; }
+    
+    // Backward compatibility methods (optional - for gradual migration)
+    @Deprecated
+    public Location getVillage() { return location; }
+    
+    @Deprecated
+    public void setVillage(Location location) { this.location = location; }
     
     public List<MenuItem> getMenuItems() { return menuItems; }
     public void setMenuItems(List<MenuItem> menuItems) { this.menuItems = menuItems; }
