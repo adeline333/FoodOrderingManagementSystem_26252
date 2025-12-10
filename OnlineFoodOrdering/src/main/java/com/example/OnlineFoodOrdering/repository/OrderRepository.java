@@ -1,8 +1,8 @@
 package com.example.OnlineFoodOrdering.repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 
-
-import com.example.OnlineFoodOrdering.entity.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -11,8 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import com.example.OnlineFoodOrdering.entity.Order;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
@@ -48,8 +47,13 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findCustomerOrdersByStatus(@Param("customerId") Long customerId, 
                                           @Param("status") Order.OrderStatus status);
     
-    // Location-based order queries
-    @Query("SELECT o FROM Order o WHERE o.customer.village.cell.sector.district.province.name = :provinceName")
+    // 🐛 FIXED: Location-based order queries - Changed from 'village' to 'location'
+    @Query("SELECT o FROM Order o WHERE " +
+           "(o.customer.location.type = 'PROVINCE' AND o.customer.location.name = :provinceName) OR " +
+           "(o.customer.location.type = 'DISTRICT' AND o.customer.location.parent.name = :provinceName) OR " +
+           "(o.customer.location.type = 'SECTOR' AND o.customer.location.parent.parent.name = :provinceName) OR " +
+           "(o.customer.location.type = 'CELL' AND o.customer.location.parent.parent.parent.name = :provinceName) OR " +
+           "(o.customer.location.type = 'VILLAGE' AND o.customer.location.parent.parent.parent.parent.name = :provinceName)")
     List<Order> findOrdersByCustomerProvince(@Param("provinceName") String provinceName);
     
     // Statistical queries
