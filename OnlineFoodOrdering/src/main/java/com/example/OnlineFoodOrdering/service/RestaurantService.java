@@ -50,15 +50,16 @@ public class RestaurantService {
     
     // ========== OWNER-BASED QUERIES ==========
     
+    // Method name matches what controller calls
     public List<Restaurant> getRestaurantsByOwner(Long ownerId) {
-        return restaurantRepository.findByOwnerId(ownerId);
+        return restaurantRepository.findByOwner_Id(ownerId);
     }
     
     // ========== LOCATION-BASED QUERIES ==========
     
-    // By location ID
+    // Method name matches what controller calls
     public List<Restaurant> getRestaurantsByLocation(Long locationId) {
-        return restaurantRepository.findByLocationId(locationId);
+        return restaurantRepository.findByLocation_Id(locationId);
     }
     
     // By location name

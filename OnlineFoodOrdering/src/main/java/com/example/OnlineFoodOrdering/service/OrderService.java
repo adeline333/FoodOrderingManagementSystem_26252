@@ -1,14 +1,14 @@
 package com.example.OnlineFoodOrdering.service;
 
-
-
 import com.example.OnlineFoodOrdering.entity.Order;
+import com.example.OnlineFoodOrdering.entity.OrderItem;
 import com.example.OnlineFoodOrdering.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,11 +16,22 @@ import java.util.Optional;
 
 @Service
 public class OrderService {
-    
+
     @Autowired
     private OrderRepository orderRepository;
-    
+
+    @Transactional
     public Order createOrder(Order order) {
+        // Ensure order items have proper back-reference
+        if (order.getOrderItems() != null) {
+            for (OrderItem item : order.getOrderItems()) {
+                item.setOrder(order);
+                // Calculate line total if not set
+                if (item.getLineTotal() == null && item.getUnitPrice() != null && item.getQuantity() != null) {
+                    item.setLineTotal(item.getUnitPrice() * item.getQuantity());
+                }
+            }
+        }
         return orderRepository.save(order);
     }
     
@@ -78,5 +89,23 @@ public class OrderService {
     
     public boolean customerHasActiveOrders(Long customerId) {
         return orderRepository.hasActiveOrders(customerId);
+    }
+
+    // Restaurant-specific order methods
+    public List<Order> getOrdersByRestaurant(Long restaurantId) {
+        return orderRepository.findByRestaurantId(restaurantId);
+    }
+
+    public Long countOrdersByRestaurant(Long restaurantId) {
+        return orderRepository.countByRestaurantId(restaurantId);
+    }
+
+    public Double getRestaurantRevenue(Long restaurantId) {
+        Double revenue = orderRepository.getTotalRevenueByRestaurantId(restaurantId);
+        return revenue != null ? revenue : 0.0;
+    }
+
+    public List<Order> getPendingOrdersByRestaurant(Long restaurantId) {
+        return orderRepository.findPendingOrdersByRestaurantId(restaurantId);
     }
 }

@@ -1,12 +1,15 @@
 package com.example.OnlineFoodOrdering.service;
 
 
+import com.example.OnlineFoodOrdering.entity.Order;
 import com.example.OnlineFoodOrdering.entity.Payment;
+import com.example.OnlineFoodOrdering.repository.OrderRepository;
 import com.example.OnlineFoodOrdering.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +20,22 @@ public class PaymentService {
     @Autowired
     private PaymentRepository paymentRepository;
 
-    public Payment create(Payment payment) { return paymentRepository.save(payment); }
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Transactional
+    public Payment create(Payment payment) {
+        Payment savedPayment = paymentRepository.save(payment);
+
+        // Update order status based on payment status
+        if (payment.getOrder() != null && payment.getStatus() == Payment.PaymentStatus.PAID) {
+            Order order = payment.getOrder();
+            order.setStatus(Order.OrderStatus.CONFIRMED);
+            orderRepository.save(order);
+        }
+
+        return savedPayment;
+    }
 
     public Optional<Payment> findById(Long id) { return paymentRepository.findById(id); }
 
