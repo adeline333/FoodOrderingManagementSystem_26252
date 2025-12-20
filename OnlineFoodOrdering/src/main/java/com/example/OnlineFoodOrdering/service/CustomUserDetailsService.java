@@ -1,5 +1,4 @@
 package com.example.OnlineFoodOrdering.service;
-
 import com.example.OnlineFoodOrdering.entity.User;
 import com.example.OnlineFoodOrdering.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
