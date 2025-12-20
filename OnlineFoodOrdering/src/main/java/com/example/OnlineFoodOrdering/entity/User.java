@@ -1,5 +1,7 @@
 package com.example.OnlineFoodOrdering.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,6 +16,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "users")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,26 +32,33 @@ public class User {
     private String email;
     
     @Column(nullable = false)
-private boolean emailVerified = false;
+    private boolean emailVerified = false;
     
-    @Column(nullable = false)
     private String phone;
     
+    @JsonIgnore  // Never expose password in JSON
     @Column(nullable = false)
     private String password;
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserRole role;
+    private UserRole role = UserRole.CUSTOMER;
 
-    
-    // UPDATED: Changed from Village to Location
+    @Enumerated(EnumType.STRING)
+    private AuthProvider authProvider = AuthProvider.LOCAL;
+
+    private String providerId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "parent", "children"})
     private Location location;
     
     // Constructors
-    public User() {}
+    public User() {
+        this.role = UserRole.CUSTOMER;
+        this.emailVerified = false;
+    }
     
     public User(String firstName, String lastName, String email, String phone, String password, UserRole role) {
         this.firstName = firstName;
@@ -56,7 +66,8 @@ private boolean emailVerified = false;
         this.email = email;
         this.phone = phone;
         this.password = password;
-        this.role = role;
+        this.role = role != null ? role : UserRole.CUSTOMER;
+        this.emailVerified = false;
     }
     
     // Getters and Setters
@@ -69,33 +80,41 @@ private boolean emailVerified = false;
     public String getLastName() { return lastName; }
     public void setLastName(String lastName) { this.lastName = lastName; }
     
+    // Helper method for full name
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+    
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     
     public boolean isEmailVerified() { return emailVerified; }
-public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
+    public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
 
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
     
+    @JsonIgnore  // Also ignore in getter
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
     
     public UserRole getRole() { return role; }
-    public void setRole(UserRole role) { this.role = role; }
+    public void setRole(UserRole role) { this.role = role != null ? role : UserRole.CUSTOMER; }
     
-    // UPDATED: Changed from getVillage/setVillage to getLocation/setLocation
     public Location getLocation() { return location; }
     public void setLocation(Location location) { this.location = location; }
-    
-    // Backward compatibility methods (optional - for gradual migration)
-    @Deprecated
-    public Location getVillage() { return location; }
-    
-    @Deprecated
-    public void setVillage(Location location) { this.location = location; }
     
     public enum UserRole {
         CUSTOMER, RESTAURANT_OWNER, ADMIN, DELIVERY_PERSON
     }
+
+    public enum AuthProvider {
+        LOCAL, GOOGLE
+    }
+
+    public AuthProvider getAuthProvider() { return authProvider; }
+    public void setAuthProvider(AuthProvider authProvider) { this.authProvider = authProvider; }
+
+    public String getProviderId() { return providerId; }
+    public void setProviderId(String providerId) { this.providerId = providerId; }
 }
