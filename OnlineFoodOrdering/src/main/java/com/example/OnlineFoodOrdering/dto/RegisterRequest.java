@@ -1,37 +1,33 @@
 package com.example.OnlineFoodOrdering.dto;
 
-import com.example.OnlineFoodOrdering.entity.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
 public class RegisterRequest {
     
     @NotBlank(message = "First name is required")
-    @Size(min = 2, max = 50, message = "First name must be between 2 and 50 characters")
     private String firstName;
     
     @NotBlank(message = "Last name is required")
-    @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters")
     private String lastName;
     
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private String email;
     
-    @NotBlank(message = "Phone is required")
     private String phone;
     
     @NotBlank(message = "Password is required")
-    @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
     
-    private User.UserRole role = User.UserRole.CUSTOMER;
+    private String role = "CUSTOMER";
+
+    private Long locationId;
+
+    public RegisterRequest() {
+        this.role = "CUSTOMER";
+    }
     
-    // Constructors
-    public RegisterRequest() {}
-    
-    // Getters and Setters
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
     
@@ -47,6 +43,16 @@ public class RegisterRequest {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
     
-    public User.UserRole getRole() { return role; }
-    public void setRole(User.UserRole role) { this.role = role; }
+    public String getRole() { return role != null ? role : "CUSTOMER"; }
+    public void setRole(String role) { this.role = (role != null && !role.isEmpty()) ? role : "CUSTOMER"; }
+
+    public Long getLocationId() { return locationId; }
+    public void setLocationId(Long locationId) { this.locationId = locationId; }
+
+    @Override
+    public String toString() {
+        return "RegisterRequest{firstName='" + firstName + "', lastName='" + lastName +
+               "', email='" + email + "', phone='" + phone + "', role='" + role +
+               "', locationId=" + locationId + "}";
+    }
 }
