@@ -18,12 +18,10 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
     Optional<Restaurant> findByName(String name);
     boolean existsByName(String name);
     List<Restaurant> findByNameContainingIgnoreCase(String name);
-    List<Restaurant> findByOwnerId(Long ownerId);
     
-    // UPDATED: Location-based queries using new Location entity
-    
-    // Find by specific location
-    List<Restaurant> findByLocationId(Long locationId);
+    // Use underscore to navigate relationships
+    List<Restaurant> findByOwner_Id(Long ownerId);
+    List<Restaurant> findByLocation_Id(Long locationId);
     
     // Find by location name
     @Query("SELECT r FROM Restaurant r WHERE r.location.name = :locationName")

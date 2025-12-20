@@ -10,6 +10,8 @@ import java.util.Optional;
 @Repository
 public interface OTPVerificationRepository extends JpaRepository<OTPVerification, Long> {
     Optional<OTPVerification> findByEmailAndOtpAndVerifiedFalse(String email, String otp);
+    Optional<OTPVerification> findByEmailAndOtpAndVerifiedFalseAndPurpose(String email, String otp, OTPVerification.OTPPurpose purpose);
     Optional<OTPVerification> findTopByEmailOrderByExpiryDateDesc(String email);
+    Optional<OTPVerification> findTopByEmailAndPurposeOrderByExpiryDateDesc(String email, OTPVerification.OTPPurpose purpose);
     void deleteByExpiryDateBefore(LocalDateTime date);
 }

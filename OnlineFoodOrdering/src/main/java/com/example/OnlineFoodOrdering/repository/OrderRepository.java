@@ -67,4 +67,20 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // Check if customer has active orders
     @Query("SELECT CASE WHEN COUNT(o) > 0 THEN true ELSE false END FROM Order o WHERE o.customer.id = :customerId AND o.status IN ('PENDING', 'CONFIRMED', 'PREPARING')")
     boolean hasActiveOrders(@Param("customerId") Long customerId);
+
+    // Find orders containing items from a specific restaurant
+    @Query("SELECT DISTINCT o FROM Order o JOIN o.orderItems oi WHERE oi.menuItem.restaurant.id = :restaurantId ORDER BY o.orderDate DESC")
+    List<Order> findByRestaurantId(@Param("restaurantId") Long restaurantId);
+
+    // Count orders for a restaurant
+    @Query("SELECT COUNT(DISTINCT o) FROM Order o JOIN o.orderItems oi WHERE oi.menuItem.restaurant.id = :restaurantId")
+    Long countByRestaurantId(@Param("restaurantId") Long restaurantId);
+
+    // Get total revenue for a restaurant
+    @Query("SELECT SUM(oi.lineTotal) FROM OrderItem oi WHERE oi.menuItem.restaurant.id = :restaurantId AND oi.order.status NOT IN ('CANCELLED')")
+    Double getTotalRevenueByRestaurantId(@Param("restaurantId") Long restaurantId);
+
+    // Get pending orders for a restaurant
+    @Query("SELECT DISTINCT o FROM Order o JOIN o.orderItems oi WHERE oi.menuItem.restaurant.id = :restaurantId AND o.status = 'PENDING' ORDER BY o.orderDate DESC")
+    List<Order> findPendingOrdersByRestaurantId(@Param("restaurantId") Long restaurantId);
 }
