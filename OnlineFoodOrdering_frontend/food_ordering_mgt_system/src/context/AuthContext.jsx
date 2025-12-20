@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authApi } from '../services/api';
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
@@ -16,6 +16,12 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setToken(null);
+    setUser(null);
+  };
 
   useEffect(() => {
     const initAuth = async () => {
@@ -24,14 +30,10 @@ export const AuthProvider = ({ children }) => {
       
       if (savedToken && savedUser) {
         setToken(savedToken);
-        setUser(JSON.parse(savedUser));
-        
-        // Optionally verify token with backend
         try {
-          // const response = await authApi.getCurrentUser();
-          // setUser(response.data);
-        } catch (error) {
-          console.error('Token verification failed:', error);
+          setUser(JSON.parse(savedUser));
+        } catch (e) {
+          console.error('Error parsing user:', e);
           logout();
         }
       }
@@ -45,12 +47,12 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       const response = await authApi.login(credentials);
-      const { token, user } = response.data;
+      const { token: newToken, user: userData } = response.data;
       
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      setToken(token);
-      setUser(user);
+      localStorage.setItem('token', newToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setToken(newToken);
+      setUser(userData);
       
       return { success: true };
     } catch (error) {
@@ -66,23 +68,40 @@ export const AuthProvider = ({ children }) => {
       const response = await authApi.register(userData);
       return { success: true, data: response.data };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Registration failed' 
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Registration failed'
       };
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setToken(null);
-    setUser(null);
+  const googleLogin = async (accessToken) => {
+    try {
+      const response = await authApi.googleAuth(accessToken);
+      const { token: newToken, user: userData } = response.data;
+
+      localStorage.setItem('token', newToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setToken(newToken);
+      setUser(userData);
+
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Google login failed'
+      };
+    }
   };
 
   const updateUser = (userData) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
+  };
+
+  const loginWithToken = (newToken, userData) => {
+    setToken(newToken);
+    setUser(userData);
   };
 
   const hasRole = (roles) => {
@@ -99,6 +118,8 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     register,
+    googleLogin,
+    loginWithToken,
     logout,
     updateUser,
     hasRole,
@@ -107,3 +128,5 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+export default AuthContext;
