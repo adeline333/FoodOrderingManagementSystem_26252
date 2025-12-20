@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.OnlineFoodOrdering.dto.AuthResponse;
+import com.example.OnlineFoodOrdering.dto.GoogleAuthRequest;
 import com.example.OnlineFoodOrdering.dto.LoginRequest;
 import com.example.OnlineFoodOrdering.dto.MessageResponse;
 import com.example.OnlineFoodOrdering.dto.OTPRequest;
@@ -26,6 +27,7 @@ import com.example.OnlineFoodOrdering.dto.UserDTO;
 import com.example.OnlineFoodOrdering.entity.User;
 import com.example.OnlineFoodOrdering.security.JwtUtil;
 import com.example.OnlineFoodOrdering.service.AuthService;
+import com.example.OnlineFoodOrdering.service.OAuth2Service;
 
 import jakarta.validation.Valid;
 
@@ -46,6 +48,9 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+    @Autowired
+    private OAuth2Service oAuth2Service;
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
         try {
@@ -57,18 +62,39 @@ public class AuthController {
                 .body(new MessageResponse("Invalid email or password"));
         }
 
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
         final User user = authService.getUserByEmail(loginRequest.getEmail());
-        
-        //Check if email is verified (if you implement email verification)
+
+        // Check if email is verified
         if (!user.isEmailVerified()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(new MessageResponse("Please verify your email first"));
         }
-        
-        final String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
-        return ResponseEntity.ok(new AuthResponse(token, user));
+        // Send OTP for 2FA login verification
+        try {
+            authService.sendLoginOTP(user.getEmail());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new MessageResponse("Failed to send OTP. Please try again."));
+        }
+
+        // Return response indicating OTP was sent (don't send token yet)
+        return ResponseEntity.ok(new MessageResponse("OTP sent to your email. Please verify to complete login."));
+    }
+
+    @PostMapping("/verify-login-otp")
+    public ResponseEntity<?> verifyLoginOTP(@Valid @RequestBody OTPRequest otpRequest) {
+        try {
+            authService.verifyLoginOTP(otpRequest.getEmail(), otpRequest.getOtp());
+
+            final User user = authService.getUserByEmail(otpRequest.getEmail());
+            final String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+
+            return ResponseEntity.ok(new AuthResponse(token, user));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse(e.getMessage()));
+        }
     }
 
     @PostMapping("/register")
@@ -127,6 +153,39 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/forgot-password-otp")
+    public ResponseEntity<?> forgotPasswordOTP(@RequestBody OTPRequest request) {
+        try {
+            authService.initiatePasswordResetOTP(request.getEmail());
+            return ResponseEntity.ok(new MessageResponse("OTP sent to your email for password reset"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/verify-password-reset-otp")
+    public ResponseEntity<?> verifyPasswordResetOTP(@Valid @RequestBody OTPRequest otpRequest) {
+        try {
+            authService.verifyPasswordResetOTP(otpRequest.getEmail(), otpRequest.getOtp());
+            return ResponseEntity.ok(new MessageResponse("OTP verified. You can now reset your password."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/reset-password-otp")
+    public ResponseEntity<?> resetPasswordWithOTP(@Valid @RequestBody PasswordResetRequest request) {
+        try {
+            authService.resetPasswordWithOTP(request.getEmail(), request.getNewPassword());
+            return ResponseEntity.ok(new MessageResponse("Password reset successful"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse(e.getMessage()));
+        }
+    }
+
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
         try {
@@ -137,6 +196,18 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new MessageResponse("Invalid token"));
+        }
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<?> googleAuth(@Valid @RequestBody GoogleAuthRequest request) {
+        try {
+            User user = oAuth2Service.processGoogleAuth(request.getAccessToken());
+            String token = oAuth2Service.generateJwtToken(user);
+            return ResponseEntity.ok(new AuthResponse(token, user));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new MessageResponse("Google authentication failed: " + e.getMessage()));
         }
     }
 }
