@@ -1,7 +1,9 @@
 package com.example.OnlineFoodOrdering.controller;
 
 
+import com.example.OnlineFoodOrdering.entity.Order;
 import com.example.OnlineFoodOrdering.entity.Payment;
+import com.example.OnlineFoodOrdering.repository.OrderRepository;
 import com.example.OnlineFoodOrdering.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -9,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,8 +23,29 @@ public class PaymentController {
     @Autowired
     private PaymentService paymentService;
 
+    @Autowired
+    private OrderRepository orderRepository;
+
     @PostMapping
-    public Payment create(@RequestBody Payment payment) { return paymentService.create(payment); }
+    public ResponseEntity<Payment> create(@RequestBody Payment payment) {
+        // Ensure we have a valid order reference
+        if (payment.getOrder() != null && payment.getOrder().getId() != null) {
+            Optional<Order> order = orderRepository.findById(payment.getOrder().getId());
+            if (order.isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            payment.setOrder(order.get());
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
+
+        // Set paidAt timestamp if not provided
+        if (payment.getPaidAt() == null) {
+            payment.setPaidAt(LocalDateTime.now());
+        }
+
+        return ResponseEntity.ok(paymentService.create(payment));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Payment> byId(@PathVariable Long id) {
@@ -71,6 +95,3 @@ public class PaymentController {
         return ResponseEntity.ok().build();
     }
 }
-
-
-
