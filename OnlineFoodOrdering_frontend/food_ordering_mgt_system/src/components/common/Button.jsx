@@ -1,40 +1,43 @@
-import React from 'react';
-import { Loader2 } from 'lucide-react';
-
 export const Button = ({ 
   children, 
   variant = 'primary', 
   size = 'md', 
-  loading = false,
+  loading = false, 
   disabled = false,
   className = '',
   ...props 
 }) => {
-  const baseStyles = 'font-medium rounded-lg transition-all duration-200 inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseClasses = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none';
   
   const variants = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-4 focus:ring-blue-300',
-    secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-4 focus:ring-gray-300',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-4 focus:ring-red-300',
-    success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-4 focus:ring-green-300',
-    outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50 focus:ring-4 focus:ring-blue-300',
-    ghost: 'text-gray-700 hover:bg-gray-100',
+    primary: 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 focus:ring-orange-500/30 shadow-lg shadow-orange-500/25 hover:shadow-xl hover:-translate-y-0.5',
+    secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500/30',
+    danger: 'bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-600 hover:to-pink-600 focus:ring-red-500/30 shadow-lg shadow-red-500/25',
+    success: 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 focus:ring-green-500/30 shadow-lg shadow-green-500/25',
+    outline: 'border-2 border-orange-300 text-orange-600 hover:bg-orange-50 focus:ring-orange-500/30',
   };
   
   const sizes = {
     sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
+    md: 'px-4 py-2.5 text-sm',
+    lg: 'px-6 py-3 text-base',
   };
-  
+
   return (
     <button
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
       disabled={disabled || loading}
       {...props}
     >
-      {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+      {loading && (
+        <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+        </svg>
+      )}
       {children}
     </button>
   );
 };
+
+export default Button;

@@ -1,15 +1,10 @@
-export const Card = ({ children, className = '', title, actions }) => {
+export const Card = ({ title, children, className = '', ...props }) => {
   return (
-    <div className={`bg-white rounded-lg shadow-md ${className}`}>
-      {(title || actions) && (
-        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-          {title && <h3 className="text-lg font-semibold text-gray-900">{title}</h3>}
-          {actions && <div className="flex gap-2">{actions}</div>}
-        </div>
-      )}
-      <div className="p-6">
-        {children}
-      </div>
+    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 p-6 ${className}`} {...props}>
+      {title && <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>}
+      {children}
     </div>
   );
 };
+
+export default Card;
