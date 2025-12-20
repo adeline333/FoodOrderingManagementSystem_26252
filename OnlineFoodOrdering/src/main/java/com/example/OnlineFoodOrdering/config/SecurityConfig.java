@@ -1,10 +1,11 @@
 package com.example.OnlineFoodOrdering.config;
 
-import com.example.OnlineFoodOrdering.security.JwtRequestFilter;
-import com.example.OnlineFoodOrdering.service.CustomUserDetailsService;
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -20,7 +21,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
+import com.example.OnlineFoodOrdering.security.JwtRequestFilter;
+import com.example.OnlineFoodOrdering.service.CustomUserDetailsService;
 
 @Configuration
 @EnableWebSecurity
@@ -57,15 +59,48 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints
+                // ========== PUBLIC ENDPOINTS ==========
+                // Auth endpoints
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
+
+                // Global Search - public access
+                .requestMatchers("/api/search/**").permitAll()
                 
-                // Admin only endpoints
+                // Restaurants - GET is public (browse), POST/PUT/DELETE require auth
+                .requestMatchers(HttpMethod.GET, "/api/restaurants/**").permitAll()
+                
+                // Menu Items - GET is public (browse), POST/PUT/DELETE require auth
+                .requestMatchers(HttpMethod.GET, "/api/menu-items/**").permitAll()
+                
+                // Locations - GET is public
+                .requestMatchers(HttpMethod.GET, "/api/locations/**").permitAll()
+                
+                // ========== ADMIN ONLY ENDPOINTS ==========
                 .requestMatchers("/api/users/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 
-                // Authenticated endpoints
+                // ========== RESTAURANT OWNER ENDPOINTS ==========
+                .requestMatchers(HttpMethod.POST, "/api/restaurants/**").hasAnyRole("ADMIN", "RESTAURANT_OWNER")
+                .requestMatchers(HttpMethod.PUT, "/api/restaurants/**").hasAnyRole("ADMIN", "RESTAURANT_OWNER")
+                .requestMatchers(HttpMethod.DELETE, "/api/restaurants/**").hasAnyRole("ADMIN", "RESTAURANT_OWNER")
+                
+                .requestMatchers(HttpMethod.POST, "/api/menu-items/**").hasAnyRole("ADMIN", "RESTAURANT_OWNER")
+                .requestMatchers(HttpMethod.PUT, "/api/menu-items/**").hasAnyRole("ADMIN", "RESTAURANT_OWNER")
+                .requestMatchers(HttpMethod.DELETE, "/api/menu-items/**").hasAnyRole("ADMIN", "RESTAURANT_OWNER")
+                
+                // ========== AUTHENTICATED ENDPOINTS ==========
+                // Orders - require authentication (GET, POST, PUT, PATCH, DELETE)
+                .requestMatchers(HttpMethod.GET, "/api/orders/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/orders/**").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/orders/**").authenticated()
+                .requestMatchers(HttpMethod.PATCH, "/api/orders/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/orders/**").authenticated()
+                
+                // Payments - require authentication
+                .requestMatchers("/api/payments/**").authenticated()
+                
+                // Everything else requires authentication
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session
@@ -81,7 +116,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
         
