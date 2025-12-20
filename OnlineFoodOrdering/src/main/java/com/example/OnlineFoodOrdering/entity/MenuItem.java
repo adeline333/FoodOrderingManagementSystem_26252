@@ -1,6 +1,6 @@
 package com.example.OnlineFoodOrdering.entity;
 
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,6 +15,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "menu_items")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class MenuItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,19 +24,26 @@ public class MenuItem {
     @Column(nullable = false)
     private String name;
     
-    @Column(nullable = false)
+    @Column
     private String description;
     
     @Column(nullable = false)
     private Double price;
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column
     private FoodCategory category;
-    
+
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+
+    @Column
+    private Boolean available = true;
+
     // MANY-TO-ONE Relationship with Restaurant
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurant_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "menuItems", "owner", "location"})
     private Restaurant restaurant;
     
     // Constructors
@@ -47,6 +55,15 @@ public class MenuItem {
         this.price = price;
         this.category = category;
         this.restaurant = restaurant;
+    }
+    
+    public MenuItem(String name, String description, Double price, FoodCategory category, Restaurant restaurant, String imageUrl) {
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.category = category;
+        this.restaurant = restaurant;
+        this.imageUrl = imageUrl;
     }
     
     // Getters and Setters
@@ -65,10 +82,27 @@ public class MenuItem {
     public FoodCategory getCategory() { return category; }
     public void setCategory(FoodCategory category) { this.category = category; }
     
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public Boolean getAvailable() { return available; }
+    public void setAvailable(Boolean available) { this.available = available; }
+
     public Restaurant getRestaurant() { return restaurant; }
     public void setRestaurant(Restaurant restaurant) { this.restaurant = restaurant; }
     
+    // Helper to get restaurant ID without loading full object
+    public Long getRestaurantId() {
+        return restaurant != null ? restaurant.getId() : null;
+    }
+    
+    // Helper to get restaurant name
+    public String getRestaurantName() {
+        return restaurant != null ? restaurant.getName() : null;
+    }
+    
+    // Enum for Food Categories
     public enum FoodCategory {
         APPETIZER, MAIN_COURSE, DESSERT, BEVERAGE, SIDE_DISH
     }
-} 
+}

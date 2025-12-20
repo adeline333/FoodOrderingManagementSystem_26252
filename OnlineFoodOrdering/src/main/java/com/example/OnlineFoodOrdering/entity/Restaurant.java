@@ -1,11 +1,14 @@
 package com.example.OnlineFoodOrdering.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "restaurants")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Restaurant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,15 +29,18 @@ public class Restaurant {
     // MANY-TO-ONE Relationship with User (Owner)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password", "restaurants", "orders", "location"})
     private User owner;
     
     // UPDATED: Changed from Village to Location
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "parent", "children"})
     private Location location;
     
     // ONE-TO-MANY Relationship with MenuItem
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore  // Don't include menu items in restaurant JSON (fetch separately)
     private List<MenuItem> menuItems = new ArrayList<>();
     
     // Constructors
@@ -67,17 +73,10 @@ public class Restaurant {
     public User getOwner() { return owner; }
     public void setOwner(User owner) { this.owner = owner; }
     
-    // UPDATED: Changed from getVillage/setVillage to getLocation/setLocation
     public Location getLocation() { return location; }
     public void setLocation(Location location) { this.location = location; }
     
-    // Backward compatibility methods (optional - for gradual migration)
-    @Deprecated
-    public Location getVillage() { return location; }
-    
-    @Deprecated
-    public void setVillage(Location location) { this.location = location; }
-    
+    @JsonIgnore
     public List<MenuItem> getMenuItems() { return menuItems; }
     public void setMenuItems(List<MenuItem> menuItems) { this.menuItems = menuItems; }
     
@@ -85,5 +84,15 @@ public class Restaurant {
     public void addMenuItem(MenuItem menuItem) {
         menuItems.add(menuItem);
         menuItem.setRestaurant(this);
+    }
+    
+    // Helper to get owner ID
+    public Long getOwnerId() {
+        return owner != null ? owner.getId() : null;
+    }
+    
+    // Helper to get owner name
+    public String getOwnerName() {
+        return owner != null ? owner.getFullName() : null;
     }
 }
