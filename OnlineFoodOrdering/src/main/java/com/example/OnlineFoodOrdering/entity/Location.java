@@ -1,12 +1,14 @@
 package com.example.OnlineFoodOrdering.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "locations")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Location {
     
     @Id
@@ -26,12 +28,12 @@ public class Location {
     // Self-referential relationship: parent location
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
-    @JsonIgnore
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "parent", "children"})
     private Location parent;
     
     // Children locations
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
+    @JsonIgnore  // Don't serialize children to avoid infinite recursion
     private List<Location> children = new ArrayList<>();
     
     // Constructors
@@ -91,6 +93,7 @@ public class Location {
         this.parent = parent;
     }
     
+    @JsonIgnore  // Also ignore in getter
     public List<Location> getChildren() {
         return children;
     }
@@ -106,6 +109,7 @@ public class Location {
     }
     
     // Helper method to get full hierarchy path
+    @JsonIgnore  // Prevent lazy loading issues
     public String getFullPath() {
         if (parent == null) {
             return name;
@@ -114,6 +118,7 @@ public class Location {
     }
     
     // Helper method to get province (root)
+    @JsonIgnore  // Prevent lazy loading issues
     public Location getProvince() {
         Location current = this;
         while (current.getParent() != null) {
