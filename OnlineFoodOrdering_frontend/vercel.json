@@ -1,0 +1,10 @@
+{
+  "buildCommand": "cd food_ordering_mgt_system && npm run build",
+  "outputDirectory": "food_ordering_mgt_system/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
