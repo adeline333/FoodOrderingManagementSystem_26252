@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const API = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+
 const api = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: API,
   headers: {
     "Content-Type": "application/json",
   },
@@ -16,7 +18,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Response interceptor to handle errors
@@ -29,7 +31,7 @@ api.interceptors.response.use(
       window.location.href = "/login";
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // ========== Auth API ==========
@@ -38,15 +40,17 @@ export const authApi = {
   register: (data) => api.post("/auth/register", data),
   logout: () => api.post("/auth/logout"),
   forgotPassword: (email) => api.post("/auth/forgot-password", { email }),
-  forgotPasswordOTP: (email) => api.post("/auth/forgot-password-otp", { email }),
+  forgotPasswordOTP: (email) =>
+    api.post("/auth/forgot-password-otp", { email }),
   resetPassword: (token, newPassword) =>
     api.post("/auth/reset-password", { token, newPassword }),
   resetPasswordOTP: (email, newPassword) =>
     api.post("/auth/reset-password-otp", { email, newPassword }),
-  verifyPasswordResetOTP: (email, otp) => 
+  verifyPasswordResetOTP: (email, otp) =>
     api.post("/auth/verify-password-reset-otp", { email, otp }),
   verifyOTP: (email, otp) => api.post("/auth/verify-otp", { email, otp }),
-  verifyLoginOTP: (email, otp) => api.post("/auth/verify-login-otp", { email, otp }),
+  verifyLoginOTP: (email, otp) =>
+    api.post("/auth/verify-login-otp", { email, otp }),
   resendOTP: (email) => api.post("/auth/resend-otp", { email }),
   getCurrentUser: () => api.get("/auth/me"),
   googleAuth: (accessToken) => api.post("/auth/google", { accessToken }),
@@ -81,10 +85,10 @@ export const userApi = {
     page = 0,
     size = 10,
     sortBy = "id",
-    sortDirection = "asc"
+    sortDirection = "asc",
   ) =>
     api.get(
-      `/users/paginated?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`
+      `/users/paginated?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`,
     ),
   getById: (id) => api.get(`/users/${id}`),
   getByEmail: (email) => api.get(`/users/email/${email}`),
@@ -107,16 +111,20 @@ export const orderApi = {
   getById: (id) => api.get(`/orders/${id}`),
   create: (data) => api.post("/orders", data),
   update: (id, data) => api.put(`/orders/${id}`, data),
-  updateStatus: (id, status) => api.patch(`/orders/${id}/status`, null, { params: { status } }),
+  updateStatus: (id, status) =>
+    api.patch(`/orders/${id}/status`, null, { params: { status } }),
   delete: (id) => api.delete(`/orders/${id}`),
   getByCustomer: (customerId) => api.get(`/orders/customer/${customerId}`),
   getByStatus: (status) => api.get(`/orders/status/${status}`),
   getByDateRange: (start, end) =>
     api.get(`/orders/date-range?start=${start}&end=${end}`),
   // Restaurant-specific endpoints
-  getByRestaurant: (restaurantId) => api.get(`/orders/restaurant/${restaurantId}`),
-  getPendingByRestaurant: (restaurantId) => api.get(`/orders/restaurant/${restaurantId}/pending`),
-  getRestaurantStats: (restaurantId) => api.get(`/orders/restaurant/${restaurantId}/stats`),
+  getByRestaurant: (restaurantId) =>
+    api.get(`/orders/restaurant/${restaurantId}`),
+  getPendingByRestaurant: (restaurantId) =>
+    api.get(`/orders/restaurant/${restaurantId}/pending`),
+  getRestaurantStats: (restaurantId) =>
+    api.get(`/orders/restaurant/${restaurantId}/stats`),
 };
 
 // Menu Items API
