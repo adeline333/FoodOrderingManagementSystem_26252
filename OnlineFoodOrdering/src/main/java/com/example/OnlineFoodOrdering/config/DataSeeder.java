@@ -24,14 +24,7 @@ public class DataSeeder implements CommandLineRunner {
     
     @Override
     public void run(String... args) throws Exception {
-        // Only seed if no restaurants exist
         try {
-            long count = restaurantRepository.count();
-            if (count > 0) {
-                System.out.println("[DataSeeder] Restaurant data already exists. Skipping seeding...");
-                return;
-            }
-            
             System.out.println("[DataSeeder] Starting restaurant and menu data seeding via SQL...");
             executeSeedSql();
             System.out.println("[DataSeeder] ✓ Data seeding completed successfully!");
