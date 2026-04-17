@@ -12,10 +12,10 @@ INSERT INTO users (id, first_name, last_name, email, password, role, phone, emai
 (14, 'lindah', 'Iriza', 'irizalindah46@gmail.com', '$2a$10$k5iuUBCUqAXG2yhxGTg.mO/7uwpPlh3i5UxiQgRDva0HYWiZB1dFO', 'CUSTOMER', '+250785467321', true, 'LOCAL', NULL, NULL);
 
 -- Restaurants from your local database
-INSERT INTO restaurants (id, name, description, address, phone, owner_id, location_id) VALUES
-(2, 'Philbert''s Kitchen', 'Authentic African and International cuisine with a modern twist', 'KG 15 Ave, Kigali Heights, Kigali', '+250 788 111 222', 10, NULL),
-(3, 'Divine Delights', 'Fresh, healthy, and delicious meals made with love', 'KN 4 Ave, Nyarutarama, Kigali', '+250 788 333 444', 11, NULL),
-(6, 'Trust restaurant', 'Rise and Shine with food', '123 Kacyiru', '+250786547432', 13, NULL);
+INSERT INTO restaurants (id, name, description, address, phone, owner_id, location_id, image_url) VALUES
+(2, 'Philbert''s Kitchen', 'Authentic African and International cuisine with a modern twist', 'KG 15 Ave, Kigali Heights, Kigali', '+250 788 111 222', 10, NULL, 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=300&fit=crop'),
+(3, 'Divine Delights', 'Fresh, healthy, and delicious meals made with love', 'KN 4 Ave, Nyarutarama, Kigali', '+250 788 333 444', 11, NULL, 'https://images.unsplash.com/photo-1504674900152-b8b80e7ddb93?w=600&h=300&fit=crop'),
+(6, 'Trust restaurant', 'Rise and Shine with food', '123 Kacyiru', '+250786547432', 13, NULL, 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=600&h=300&fit=crop');
 
 -- Menu Items for Philbert's Kitchen (restaurant_id = 2)
 INSERT INTO menu_items (id, name, category, description, price, restaurant_id, image_url, available) VALUES

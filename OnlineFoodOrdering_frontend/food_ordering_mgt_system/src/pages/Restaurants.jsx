@@ -80,12 +80,8 @@ const Restaurants = () => {
   });
 
   const getRestaurantImage = (restaurant) => {
-    const restaurantImages = {
-      2: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=300&fit=crop',
-      3: 'https://images.unsplash.com/photo-1504674900152-b8b80e7ddb93?w=600&h=300&fit=crop',
-      6: 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=600&h=300&fit=crop',
-    };
-    return restaurantImages[restaurant.id] || 'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=600&h=300&fit=crop';
+    // Use image_url from backend if available, otherwise use default
+    return restaurant.imageUrl || 'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=600&h=300&fit=crop';
   };
 
   if (loading) {

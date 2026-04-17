@@ -26,6 +26,9 @@ public class Restaurant {
     @Column(nullable = false)
     private String phone;
     
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+    
     // MANY-TO-ONE Relationship with User (Owner)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
@@ -69,6 +72,9 @@ public class Restaurant {
     
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
+    
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     
     public User getOwner() { return owner; }
     public void setOwner(User owner) { this.owner = owner; }

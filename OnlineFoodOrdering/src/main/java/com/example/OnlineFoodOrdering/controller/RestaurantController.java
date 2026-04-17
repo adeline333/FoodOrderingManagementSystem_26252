@@ -60,6 +60,7 @@ public class RestaurantController {
             restaurant.setDescription(restaurantDetails.getDescription());
             restaurant.setAddress(restaurantDetails.getAddress());
             restaurant.setPhone(restaurantDetails.getPhone());
+            restaurant.setImageUrl(restaurantDetails.getImageUrl());
             restaurant.setLocation(restaurantDetails.getLocation()); // UPDATED: Changed from setVillage
             
             Restaurant updatedRestaurant = restaurantService.updateRestaurant(restaurant);
