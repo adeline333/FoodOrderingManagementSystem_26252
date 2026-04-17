@@ -203,7 +203,7 @@ const Register = () => {
                 value={formData.firstName}
                 onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                 className="w-full pl-10 pr-3 py-2.5 bg-orange-50 border-2 border-orange-100 rounded-xl text-gray-900 placeholder-gray-400 outline-none transition-all focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-500/10"
-                placeholder="John"
+                placeholder="Your first name"
               />
             </div>
           </div>
@@ -217,7 +217,7 @@ const Register = () => {
                 value={formData.lastName}
                 onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                 className="w-full pl-10 pr-3 py-2.5 bg-orange-50 border-2 border-orange-100 rounded-xl text-gray-900 placeholder-gray-400 outline-none transition-all focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-500/10"
-                placeholder="Doe"
+                placeholder="Your last name"
               />
             </div>
           </div>

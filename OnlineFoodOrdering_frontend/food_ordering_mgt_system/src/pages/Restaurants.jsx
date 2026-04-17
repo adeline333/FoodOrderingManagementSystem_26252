@@ -79,9 +79,13 @@ const Restaurants = () => {
            ownerName.includes(term);
   });
 
-  const getRestaurantEmoji = (index) => {
-    const emojis = ['🍕', '🍔', '🌮', '🍜', '🍣', '🥗', '🍝', '🍛', '🍱', '🥘'];
-    return emojis[index % emojis.length];
+  const getRestaurantImage = (restaurant) => {
+    const restaurantImages = {
+      2: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=300&fit=crop',
+      3: 'https://images.unsplash.com/photo-1504674900152-b8b80e7ddb93?w=600&h=300&fit=crop',
+      6: 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=600&h=300&fit=crop',
+    };
+    return restaurantImages[restaurant.id] || 'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=600&h=300&fit=crop';
   };
 
   if (loading) {
@@ -193,12 +197,12 @@ const Restaurants = () => {
                   }`}
                 >
                   {/* Restaurant Image/Banner */}
-                  <div className="relative h-40 bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-7xl opacity-30 group-hover:scale-125 transition-transform duration-500">
-                        {getRestaurantEmoji(index)}
-                      </span>
-                    </div>
+                  <div className="relative h-40 bg-gray-200 overflow-hidden">
+                    <img
+                      src={getRestaurantImage(restaurant)}
+                      alt={restaurant.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
                     
                     {/* Rating Badge */}
                     <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 bg-white/90 backdrop-blur rounded-lg shadow-sm">
@@ -207,7 +211,7 @@ const Restaurants = () => {
                     </div>
 
                     {/* Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                     
                     {/* Restaurant Name on Image */}
                     <div className="absolute bottom-3 left-4 right-4">
