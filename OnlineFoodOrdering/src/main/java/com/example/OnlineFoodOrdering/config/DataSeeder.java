@@ -25,22 +25,29 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // Only seed if no restaurants exist
-        if (restaurantRepository.count() > 0) {
-            System.out.println("Restaurant data already exists. Skipping seeding...");
-            return;
-        }
-        
-        System.out.println("Starting restaurant and menu data seeding via SQL...");
         try {
+            long count = restaurantRepository.count();
+            if (count > 0) {
+                System.out.println("[DataSeeder] Restaurant data already exists. Skipping seeding...");
+                return;
+            }
+            
+            System.out.println("[DataSeeder] Starting restaurant and menu data seeding via SQL...");
             executeSeedSql();
-            System.out.println("✓ Data seeding completed successfully!");
+            System.out.println("[DataSeeder] ✓ Data seeding completed successfully!");
         } catch (Exception e) {
-            System.err.println("Error during data seeding: " + e.getMessage());
+            System.err.println("[DataSeeder ERROR] " + e.getMessage());
             e.printStackTrace();
+            // Continue app startup despite seeding errors
         }
     }
 
     private void executeSeedSql() throws Exception {
+        if (dataSource == null) {
+            System.err.println("[DataSeeder ERROR] DataSource not injected!");
+            return;
+        }
+        
         String[] sqlStatements = {
             // Users
             "INSERT INTO users (id, first_name, last_name, email, password, role, phone, email_verified, auth_provider, provider_id, location_id) VALUES " +
@@ -76,11 +83,15 @@ public class DataSeeder implements CommandLineRunner {
             for (String sql : sqlStatements) {
                 try {
                     stmt.execute(sql);
+                    System.out.println("[DataSeeder] Executed: " + sql.substring(0, Math.min(50, sql.length())) + "...");
                 } catch (Exception e) {
-                    // Continue on error - might be duplicate key or other constraints
-                    System.out.println("Note: " + e.getMessage());
+                    System.out.println("[DataSeeder WARNING] " + e.getMessage());
                 }
             }
+        } catch (Exception e) {
+            System.err.println("[DataSeeder ERROR] Failed to execute seed SQL: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
     }
 }
