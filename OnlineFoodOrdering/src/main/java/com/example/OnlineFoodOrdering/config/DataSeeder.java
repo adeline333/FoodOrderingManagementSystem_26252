@@ -1,15 +1,16 @@
 package com.example.OnlineFoodOrdering.config;
 
-import com.example.OnlineFoodOrdering.entity.*;
-import com.example.OnlineFoodOrdering.repository.*;
+import java.sql.Connection;
+import java.sql.Statement;
+
+import javax.sql.DataSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.Statement;
+import com.example.OnlineFoodOrdering.repository.RestaurantRepository;
 
 @Component
 @Order(2) // Run after LocationDataSeeder
