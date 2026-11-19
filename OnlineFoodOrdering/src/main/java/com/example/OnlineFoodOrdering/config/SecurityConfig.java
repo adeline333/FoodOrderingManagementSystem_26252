@@ -63,6 +63,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
+                // ========== PUBLIC ROOT & HEALTH CHECK ==========
+                .requestMatchers("/", "/health", "/api/health", "/error").permitAll()
+
                 // ========== PUBLIC ENDPOINTS ==========
                 // Auth endpoints
                 .requestMatchers("/api/auth/**").permitAll()
