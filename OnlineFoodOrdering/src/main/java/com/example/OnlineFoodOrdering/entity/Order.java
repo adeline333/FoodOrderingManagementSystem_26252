@@ -43,7 +43,7 @@ public class Order {
     private String notes;
 
     // MANY-TO-ONE Relationship with User (Customer)
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "customer_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password"})
     private User customer;

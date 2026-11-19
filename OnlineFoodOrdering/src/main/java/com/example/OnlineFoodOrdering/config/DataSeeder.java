@@ -131,7 +131,13 @@ public class DataSeeder implements CommandLineRunner {
             "INSERT INTO orders (id, delivery_address, order_date, status, total_amount, customer_id) VALUES (10, 'Gatsata', '2025-12-20 17:13:15.435507', 'CONFIRMED', 2713.2, 7) ON CONFLICT DO NOTHING",
             "INSERT INTO orders (id, delivery_address, order_date, status, total_amount, customer_id) VALUES (11, 'kabuga', '2025-12-22 13:24:40.201752', 'CONFIRMED', 14250, 9) ON CONFLICT DO NOTHING",
             "INSERT INTO orders (id, delivery_address, order_date, status, total_amount, customer_id) VALUES (12, 'Nyabugogo', '2025-12-22 13:37:55.608524', 'ON_THE_WAY', 18100, 10) ON CONFLICT DO NOTHING",
-            "INSERT INTO orders (id, delivery_address, order_date, status, total_amount, customer_id) VALUES (13, 'Nyaugogo', '2025-12-22 17:57:15.490532', 'CONFIRMED', 17550, 9) ON CONFLICT DO NOTHING"
+            "INSERT INTO orders (id, delivery_address, order_date, status, total_amount, customer_id) VALUES (13, 'Nyaugogo', '2025-12-22 17:57:15.490532', 'CONFIRMED', 17550, 9) ON CONFLICT DO NOTHING",
+            
+            // Advance Postgres ID sequences so future inserts don't collide
+            "SELECT setval(pg_get_serial_sequence('users', 'id'), COALESCE(MAX(id), 1)) FROM users",
+            "SELECT setval(pg_get_serial_sequence('restaurants', 'id'), COALESCE(MAX(id), 1)) FROM restaurants",
+            "SELECT setval(pg_get_serial_sequence('menu_items', 'id'), COALESCE(MAX(id), 1)) FROM menu_items",
+            "SELECT setval(pg_get_serial_sequence('orders', 'id'), COALESCE(MAX(id), 1)) FROM orders"
         };
         
         try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement()) {

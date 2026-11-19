@@ -49,7 +49,7 @@ public class User {
 
     private String providerId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "location_id")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "parent", "children"})
     private Location location;

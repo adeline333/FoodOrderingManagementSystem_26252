@@ -96,16 +96,20 @@ const Dashboard = () => {
 
         // Fetch restaurants and menu items to display immediately on login!
         try {
-          const [restRes, menuRes] = await Promise.all([
+          const [restResult, menuResult] = await Promise.allSettled([
             restaurantApi.getAll(),
             menuItemApi.getAll(),
           ]);
-          const restData = Array.isArray(restRes.data) ? restRes.data : restRes.data?.content || [];
-          const menuData = Array.isArray(menuRes.data) ? menuRes.data : menuRes.data?.content || [];
+          const restData = restResult.status === 'fulfilled' && Array.isArray(restResult.value?.data)
+            ? restResult.value.data
+            : (restResult.status === 'fulfilled' && restResult.value?.data?.content ? restResult.value.data.content : []);
+          const menuData = menuResult.status === 'fulfilled' && Array.isArray(menuResult.value?.data)
+            ? menuResult.value.data
+            : (menuResult.status === 'fulfilled' && menuResult.value?.data?.content ? menuResult.value.data.content : []);
           setAllRestaurants(restData);
           setAllMenuItems(menuData);
         } catch (err) {
-          console.log('Could not fetch restaurants or menu items:', err);
+          console.error('Could not fetch restaurants or menu items:', err);
         }
 
         const totalSpent = orders.reduce((sum, order) => sum + (parseFloat(order.totalAmount) || 0), 0);

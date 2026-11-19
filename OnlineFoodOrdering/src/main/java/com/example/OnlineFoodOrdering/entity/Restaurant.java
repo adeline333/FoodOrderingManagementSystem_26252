@@ -30,13 +30,13 @@ public class Restaurant {
     private String imageUrl;
     
     // MANY-TO-ONE Relationship with User (Owner)
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password", "restaurants", "orders", "location"})
     private User owner;
     
     // UPDATED: Changed from Village to Location
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "location_id")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "parent", "children"})
     private Location location;
@@ -94,11 +94,19 @@ public class Restaurant {
     
     // Helper to get owner ID
     public Long getOwnerId() {
-        return owner != null ? owner.getId() : null;
+        try {
+            return owner != null ? owner.getId() : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
     
     // Helper to get owner name
     public String getOwnerName() {
-        return owner != null ? owner.getFullName() : null;
+        try {
+            return owner != null ? owner.getFullName() : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

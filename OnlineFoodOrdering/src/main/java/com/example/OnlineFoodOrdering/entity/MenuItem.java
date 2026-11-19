@@ -41,7 +41,7 @@ public class MenuItem {
     private Boolean available = true;
 
     // MANY-TO-ONE Relationship with Restaurant
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "restaurant_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "menuItems", "owner", "location"})
     private Restaurant restaurant;
@@ -93,12 +93,20 @@ public class MenuItem {
     
     // Helper to get restaurant ID without loading full object
     public Long getRestaurantId() {
-        return restaurant != null ? restaurant.getId() : null;
+        try {
+            return restaurant != null ? restaurant.getId() : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
     
     // Helper to get restaurant name
     public String getRestaurantName() {
-        return restaurant != null ? restaurant.getName() : null;
+        try {
+            return restaurant != null ? restaurant.getName() : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
     
     // Enum for Food Categories
