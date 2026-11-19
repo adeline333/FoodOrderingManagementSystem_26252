@@ -154,7 +154,6 @@ const Dashboard = () => {
       item.restaurant?.name?.toLowerCase().includes(term);
     return matchesCategory && matchesSearch;
   });
-  };
 
   useEffect(() => {
     loadDashboardData();
@@ -755,7 +754,6 @@ const Dashboard = () => {
         </div>
       </div>
     </div>
-  );
   );
 };
 
