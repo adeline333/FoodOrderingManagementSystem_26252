@@ -10,6 +10,7 @@ const ForgotPasswordOTP = () => {
   const [step, setStep] = useState(1); // 1: Email, 2: OTP, 3: New Password, 4: Success
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [receivedOtp, setReceivedOtp] = useState(null);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     newPassword: '',
@@ -24,9 +25,15 @@ const ForgotPasswordOTP = () => {
     setLoading(true);
 
     try {
-      await authApi.forgotPasswordOTP(email);
+      const response = await authApi.forgotPasswordOTP(email);
+      if (response.data?.otp) {
+        setReceivedOtp(response.data.otp);
+        setOtp(String(response.data.otp).split(''));
+        toast.success(`OTP: ${response.data.otp}`, { duration: 8000 });
+      } else {
+        toast.success('OTP sent to your email!');
+      }
       setStep(2);
-      toast.success('OTP sent to your email!');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to send OTP');
     } finally {
@@ -188,6 +195,12 @@ const ForgotPasswordOTP = () => {
             We sent a code to<br />
             <span className="font-semibold text-gray-700">{email}</span>
           </p>
+          {receivedOtp && (
+            <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-xl max-w-xs mx-auto text-center">
+              <span className="text-xs font-semibold text-orange-700 uppercase tracking-wider">Verification Code</span>
+              <div className="text-xl font-bold text-orange-600 tracking-widest mt-0.5">{receivedOtp}</div>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleVerifyOTP} className="space-y-6">

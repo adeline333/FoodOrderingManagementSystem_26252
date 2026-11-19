@@ -1,7 +1,15 @@
 package com.example.OnlineFoodOrdering.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +23,7 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired(required = false)
     private JavaMailSender mailSender;
@@ -28,8 +37,53 @@ public class EmailService {
     @Value("${app.frontend.url:http://localhost:5173}")
     private String frontendUrl;
 
+    @Value("${resend.api.key:}")
+    private String resendApiKey;
+
+    private boolean sendViaResend(String toEmail, String subject, String htmlContent) {
+        if (resendApiKey == null || resendApiKey.trim().isEmpty()) {
+            return false;
+        }
+
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+            Map<String, Object> body = new HashMap<>();
+            body.put("from", appName + " <onboarding@resend.dev>");
+            body.put("to", List.of(toEmail));
+            body.put("subject", subject);
+            body.put("html", htmlContent);
+
+            String jsonPayload = objectMapper.writeValueAsString(body);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.resend.com/emails"))
+                .header("Authorization", "Bearer " + resendApiKey.trim())
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
+                .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                logger.info("Email sent successfully via Resend API to: {}", toEmail);
+                return true;
+            } else {
+                logger.warn("Resend API failed with status {}: {}", response.statusCode(), response.body());
+                return false;
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to send email via Resend API: {}", e.getMessage());
+            return false;
+        }
+    }
+
     @Async
     public void sendLoginOTPEmail(String toEmail, String otp) {
+        String htmlContent = buildLoginOTPEmailTemplate(otp);
+        String subject = "Login Verification Code - " + appName;
+        if (sendViaResend(toEmail, subject, htmlContent)) {
+            return;
+        }
+
         if (mailSender == null) {
             logger.warn("Mail sender not configured. Login OTP for {}: {}", toEmail, otp);
             return;
@@ -41,9 +95,7 @@ public class EmailService {
 
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
-            helper.setSubject("Login Verification Code - " + appName);
-
-            String htmlContent = buildLoginOTPEmailTemplate(otp);
+            helper.setSubject(subject);
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
@@ -59,6 +111,12 @@ public class EmailService {
 
     @Async
     public void sendOTPEmail(String toEmail, String otp) {
+        String htmlContent = buildOTPEmailTemplate(otp);
+        String subject = "Verify Your Email - " + appName;
+        if (sendViaResend(toEmail, subject, htmlContent)) {
+            return;
+        }
+
         if (mailSender == null) {
             logger.warn("Mail sender not configured. OTP for {}: {}", toEmail, otp);
             return;
@@ -70,9 +128,7 @@ public class EmailService {
 
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
-            helper.setSubject("Verify Your Email - " + appName);
-
-            String htmlContent = buildOTPEmailTemplate(otp);
+            helper.setSubject(subject);
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
@@ -89,6 +145,12 @@ public class EmailService {
 
     @Async
     public void sendPasswordResetOTPEmail(String toEmail, String otp) {
+        String htmlContent = buildPasswordResetOTPEmailTemplate(otp);
+        String subject = "Password Reset Code - " + appName;
+        if (sendViaResend(toEmail, subject, htmlContent)) {
+            return;
+        }
+
         if (mailSender == null) {
             logger.warn("Mail sender not configured. Password reset OTP for {}: {}", toEmail, otp);
             return;
@@ -100,9 +162,7 @@ public class EmailService {
 
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
-            helper.setSubject("Password Reset Code - " + appName);
-
-            String htmlContent = buildPasswordResetOTPEmailTemplate(otp);
+            helper.setSubject(subject);
             helper.setText(htmlContent, true);
 
             mailSender.send(message);

@@ -9,8 +9,10 @@ const VerifyOTP = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const email = location.state?.email;
+  const initialOtp = location.state?.otp;
   
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [receivedOtp, setReceivedOtp] = useState(initialOtp || null);
+  const [otp, setOtp] = useState(initialOtp ? String(initialOtp).split('') : ['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
 
@@ -62,8 +64,14 @@ const VerifyOTP = () => {
   const handleResend = async () => {
     setResending(true);
     try {
-      await authApi.resendOTP(email);
-      toast.success('OTP resent successfully!');
+      const response = await authApi.resendOTP(email);
+      if (response.data?.otp) {
+        setReceivedOtp(response.data.otp);
+        setOtp(String(response.data.otp).split(''));
+        toast.success(`OTP: ${response.data.otp}`, { duration: 8000 });
+      } else {
+        toast.success('OTP resent successfully!');
+      }
     } catch (error) {
       toast.error(`Failed to resend OTP ${error}`);
     } finally {
@@ -77,10 +85,17 @@ const VerifyOTP = () => {
         <ShieldCheck className="w-10 h-10 text-white" />
       </div>
       <h2 className="text-2xl font-bold text-gray-900 mb-2">Verify Your Email 📧</h2>
-      <p className="text-gray-500 mb-8">
+      <p className="text-gray-500 mb-6">
         We've sent a 6-digit code to<br />
         <span className="font-semibold text-gray-700">{email}</span>
       </p>
+
+      {receivedOtp && (
+        <div className="mb-6 p-3 bg-orange-50 border border-orange-200 rounded-xl max-w-xs mx-auto text-center">
+          <span className="text-xs font-semibold text-orange-700 uppercase tracking-wider">Verification Code</span>
+          <div className="text-xl font-bold text-orange-600 tracking-widest mt-0.5">{receivedOtp}</div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="flex justify-center gap-2">

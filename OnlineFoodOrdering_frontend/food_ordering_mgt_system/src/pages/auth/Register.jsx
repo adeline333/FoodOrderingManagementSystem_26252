@@ -168,8 +168,12 @@ const Register = () => {
     });
 
     if (result.success) {
-      toast.success('Registration successful! Please verify your email.');
-      navigate('/verify-otp', { state: { email: formData.email } });
+      if (result.data?.otp) {
+        toast.success(`Registration successful! OTP: ${result.data.otp}`, { duration: 8000 });
+      } else {
+        toast.success('Registration successful! Please verify your email.');
+      }
+      navigate('/verify-otp', { state: { email: formData.email, otp: result.data?.otp } });
     } else {
       toast.error(result.error || 'Registration failed');
     }

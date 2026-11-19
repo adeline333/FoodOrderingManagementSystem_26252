@@ -16,6 +16,7 @@ const Login = () => {
     password: '',
   });
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [receivedOtp, setReceivedOtp] = useState(null);
   const [resendTimer, setResendTimer] = useState(0);
   const inputRefs = useRef([]);
 
@@ -34,7 +35,13 @@ const Login = () => {
       const response = await authApi.login(formData);
       // If login returns a message (OTP sent), go to OTP step
       if (response.data.message) {
-        toast.success('OTP sent to your email!');
+        if (response.data.otp) {
+          setReceivedOtp(response.data.otp);
+          setOtp(response.data.otp.split(''));
+          toast.success(`OTP: ${response.data.otp}`, { duration: 8000 });
+        } else {
+          toast.success('OTP sent to your email!');
+        }
         setStep('otp');
         setResendTimer(60);
       }
@@ -117,10 +124,16 @@ const Login = () => {
     if (resendTimer > 0) return;
 
     try {
-      await authApi.resendOTP(formData.email);
-      toast.success('New OTP sent to your email!');
+      const response = await authApi.resendOTP(formData.email);
+      if (response.data?.otp) {
+        setReceivedOtp(response.data.otp);
+        setOtp(response.data.otp.split(''));
+        toast.success(`New OTP: ${response.data.otp}`, { duration: 8000 });
+      } else {
+        toast.success('New OTP sent to your email!');
+        setOtp(['', '', '', '', '', '']);
+      }
       setResendTimer(60);
-      setOtp(['', '', '', '', '', '']);
     } catch (error) {
       toast.error('Failed to resend OTP');
     }
@@ -134,6 +147,7 @@ const Login = () => {
           onClick={() => {
             setStep('credentials');
             setOtp(['', '', '', '', '', '']);
+            setReceivedOtp(null);
           }}
           className="flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium mb-6 transition-colors"
         >
@@ -150,6 +164,12 @@ const Login = () => {
             We've sent a 6-digit code to<br />
             <span className="font-semibold text-gray-700">{formData.email}</span>
           </p>
+          {receivedOtp && (
+            <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-xl text-center">
+              <span className="text-xs font-semibold text-orange-700 uppercase tracking-wider">Verification Code</span>
+              <div className="text-xl font-bold text-orange-600 tracking-widest mt-0.5">{receivedOtp}</div>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleVerifyOtp} className="space-y-6">

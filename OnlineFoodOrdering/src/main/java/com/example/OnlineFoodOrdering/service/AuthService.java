@@ -166,7 +166,7 @@ public class AuthService {
         }
     }
 
-    public void resendOTP(String email) {
+    public String resendOTP(String email) {
         User user = userRepository.findByEmail(email.toLowerCase())
             .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -181,6 +181,7 @@ public class AuthService {
 
         emailService.sendOTPEmail(email, otp);
         logger.info("OTP resent to: {}", email);
+        return otp;
     }
 
     public void initiatePasswordReset(String email) {
@@ -241,7 +242,13 @@ public class AuthService {
         }
     }
 
-    public void sendLoginOTP(String email) {
+    public String getLatestOTP(String email) {
+        return otpRepository.findTopByEmailOrderByExpiryDateDesc(email.toLowerCase())
+            .map(OTPVerification::getOtp)
+            .orElse(null);
+    }
+
+    public String sendLoginOTP(String email) {
         User user = userRepository.findByEmail(email.toLowerCase())
             .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -256,6 +263,7 @@ public class AuthService {
 
         emailService.sendLoginOTPEmail(email, otp);
         logger.info("Login OTP sent to: {}", email);
+        return otp;
     }
 
     public void verifyLoginOTP(String email, String otp) {
@@ -275,7 +283,7 @@ public class AuthService {
         logger.info("Login OTP verified for: {}", email);
     }
 
-    public void initiatePasswordResetOTP(String email) {
+    public String initiatePasswordResetOTP(String email) {
         User user = userRepository.findByEmail(email.toLowerCase())
             .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -290,6 +298,7 @@ public class AuthService {
 
         emailService.sendPasswordResetOTPEmail(email, otp);
         logger.info("Password reset OTP sent to: {}", email);
+        return otp;
     }
 
     public void verifyPasswordResetOTP(String email, String otp) {

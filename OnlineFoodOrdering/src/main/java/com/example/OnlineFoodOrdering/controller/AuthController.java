@@ -71,15 +71,16 @@ public class AuthController {
         }
 
         // Send OTP for 2FA login verification
+        String otp = null;
         try {
-            authService.sendLoginOTP(user.getEmail());
+            otp = authService.sendLoginOTP(user.getEmail());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new MessageResponse("Failed to send OTP. Please try again."));
         }
 
         // Return response indicating OTP was sent (don't send token yet)
-        return ResponseEntity.ok(new MessageResponse("OTP sent to your email. Please verify to complete login."));
+        return ResponseEntity.ok(new MessageResponse("OTP sent to your email. Please verify to complete login.", otp));
     }
 
     @PostMapping("/verify-login-otp")
@@ -101,8 +102,9 @@ public class AuthController {
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest) {
         try {
             User user = authService.register(registerRequest);
+            String otp = authService.getLatestOTP(user.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new MessageResponse("Registration successful. Please verify your email."));
+                .body(new MessageResponse("Registration successful. Please verify your email.", otp));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest()
                 .body(new MessageResponse(e.getMessage()));
@@ -123,8 +125,8 @@ public class AuthController {
     @PostMapping("/resend-otp")
     public ResponseEntity<?> resendOTP(@RequestBody OTPRequest otpRequest) {
         try {
-            authService.resendOTP(otpRequest.getEmail());
-            return ResponseEntity.ok(new MessageResponse("OTP sent successfully"));
+            String otp = authService.resendOTP(otpRequest.getEmail());
+            return ResponseEntity.ok(new MessageResponse("OTP sent successfully", otp));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest()
                 .body(new MessageResponse(e.getMessage()));
@@ -156,8 +158,8 @@ public class AuthController {
     @PostMapping("/forgot-password-otp")
     public ResponseEntity<?> forgotPasswordOTP(@RequestBody OTPRequest request) {
         try {
-            authService.initiatePasswordResetOTP(request.getEmail());
-            return ResponseEntity.ok(new MessageResponse("OTP sent to your email for password reset"));
+            String otp = authService.initiatePasswordResetOTP(request.getEmail());
+            return ResponseEntity.ok(new MessageResponse("OTP sent to your email for password reset", otp));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest()
                 .body(new MessageResponse(e.getMessage()));
