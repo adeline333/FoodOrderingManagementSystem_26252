@@ -47,7 +47,7 @@ const AuthLayout = () => {
 
         {/* Footer */}
         <p className="text-center text-sm text-gray-400 mt-6">
-          © 2024 FoodOrder. Made with ❤️ for food lovers
+          © {new Date().getFullYear()} FoodOrder. Made with ❤️ for food lovers
         </p>
       </div>
     </div>
