@@ -18,7 +18,7 @@ public class UserDTO {
         this.email = user.getEmail();
         this.phone = user.getPhone();
         this.role = user.getRole().name();
-        // You can add emailVerified field to User entity
+        this.emailVerified = user.isEmailVerified();
     }
     
     // Getters and Setters

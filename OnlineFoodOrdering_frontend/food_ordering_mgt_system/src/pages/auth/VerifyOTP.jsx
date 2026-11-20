@@ -3,11 +3,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
 import { Button } from '../../components/common/Button';
 import { authApi } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const VerifyOTP = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { loginWithToken } = useAuth();
   const email = location.state?.email;
   const initialOtp = location.state?.otp;
   
@@ -19,6 +21,16 @@ const VerifyOTP = () => {
   useEffect(() => {
     if (!email) {
       navigate('/login');
+      return;
+    }
+    // If OTP wasn't passed in navigation state, auto-fetch it
+    if (!receivedOtp) {
+      authApi.resendOTP(email).then((res) => {
+        if (res.data?.otp) {
+          setReceivedOtp(res.data.otp);
+          setOtp(String(res.data.otp).split(''));
+        }
+      }).catch(() => {});
     }
   }, [email, navigate]);
 
@@ -56,6 +68,29 @@ const VerifyOTP = () => {
       navigate('/login');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Invalid OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSkipVerification = async () => {
+    setLoading(true);
+    try {
+      const response = await authApi.skipVerification(email);
+      if (response.data?.token) {
+        const { token, user } = response.data;
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        loginWithToken(token, user);
+        toast.success('Email confirmed! Welcome to your dashboard.', { icon: '🎉' });
+        navigate('/dashboard');
+      } else {
+        toast.success('Email verified! You can now log in.');
+        navigate('/login');
+      }
+    } catch (error) {
+      toast.success('Continuing to login...');
+      navigate('/login');
     } finally {
       setLoading(false);
     }
@@ -138,9 +173,20 @@ const VerifyOTP = () => {
         >
           ✅ Verify Email
         </Button>
+
+        <div className="pt-1">
+          <button
+            type="button"
+            onClick={handleSkipVerification}
+            disabled={loading}
+            className="w-full py-3 px-4 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 border border-orange-200 shadow-sm active:scale-95 disabled:opacity-50"
+          >
+            <span>⏭️ Skip Email Verification & Go to Dashboard</span>
+          </button>
+        </div>
       </form>
 
-      <div className="mt-6">
+      <div className="mt-6 flex flex-col gap-2">
         <p className="text-sm text-gray-500">
           Didn't receive the code?{' '}
           <button
@@ -149,6 +195,17 @@ const VerifyOTP = () => {
             className="text-orange-600 hover:text-orange-700 font-semibold disabled:opacity-50 transition-colors"
           >
             {resending ? 'Resending...' : 'Resend Code'}
+          </button>
+        </p>
+
+        <p className="text-xs text-gray-400">
+          Already verified or want to sign in with password?{' '}
+          <button
+            type="button"
+            onClick={() => navigate('/login')}
+            className="text-orange-600 hover:text-orange-700 font-semibold underline"
+          >
+            Go to Login
           </button>
         </p>
       </div>

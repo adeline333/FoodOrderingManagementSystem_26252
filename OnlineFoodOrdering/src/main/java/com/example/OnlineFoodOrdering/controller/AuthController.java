@@ -29,6 +29,7 @@ import com.example.OnlineFoodOrdering.security.JwtUtil;
 import com.example.OnlineFoodOrdering.service.AuthService;
 import com.example.OnlineFoodOrdering.service.OAuth2Service;
 
+import java.util.Map;
 import jakarta.validation.Valid;
 
 @RestController
@@ -64,10 +65,9 @@ public class AuthController {
 
         final User user = authService.getUserByEmail(loginRequest.getEmail());
 
-        // Check if email is verified
+        // Auto-verify email if not yet verified upon successful password authentication
         if (!user.isEmailVerified()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(new MessageResponse("Please verify your email first"));
+            authService.verifyUserDirectly(user.getEmail());
         }
 
         // Send OTP for 2FA login verification
@@ -89,6 +89,9 @@ public class AuthController {
             authService.verifyLoginOTP(otpRequest.getEmail(), otpRequest.getOtp());
 
             final User user = authService.getUserByEmail(otpRequest.getEmail());
+            if (!user.isEmailVerified()) {
+                authService.verifyUserDirectly(user.getEmail());
+            }
             final String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
             return ResponseEntity.ok(new AuthResponse(token, user));
@@ -96,6 +99,28 @@ public class AuthController {
             return ResponseEntity.badRequest()
                 .body(new MessageResponse(e.getMessage()));
         }
+    }
+
+    @PostMapping("/skip-verification")
+    public ResponseEntity<?> skipVerification(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        if (email == null || email.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Email is required"));
+        }
+        User user = authService.verifyUserDirectly(email.trim());
+        final String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        return ResponseEntity.ok(new AuthResponse(token, user));
+    }
+
+    @PostMapping("/skip-login-otp")
+    public ResponseEntity<?> skipLoginOtp(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        if (email == null || email.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Email is required"));
+        }
+        User user = authService.verifyUserDirectly(email.trim());
+        final String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        return ResponseEntity.ok(new AuthResponse(token, user));
     }
 
     @PostMapping("/register")

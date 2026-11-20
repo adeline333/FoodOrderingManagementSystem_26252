@@ -49,8 +49,10 @@ export const authApi = {
   verifyPasswordResetOTP: (email, otp) =>
     api.post("/auth/verify-password-reset-otp", { email, otp }),
   verifyOTP: (email, otp) => api.post("/auth/verify-otp", { email, otp }),
+  skipVerification: (email) => api.post("/auth/skip-verification", { email }),
   verifyLoginOTP: (email, otp) =>
     api.post("/auth/verify-login-otp", { email, otp }),
+  skipLoginOtp: (email) => api.post("/auth/skip-login-otp", { email }),
   resendOTP: (email) => api.post("/auth/resend-otp", { email }),
   getCurrentUser: () => api.get("/auth/me"),
   googleAuth: (accessToken) => api.post("/auth/google", { accessToken }),

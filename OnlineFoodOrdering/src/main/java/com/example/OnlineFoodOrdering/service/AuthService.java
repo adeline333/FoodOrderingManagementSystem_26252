@@ -242,6 +242,12 @@ public class AuthService {
         }
     }
 
+    public User verifyUserDirectly(String email) {
+        User user = getUserByEmail(email);
+        user.setEmailVerified(true);
+        return userRepository.save(user);
+    }
+
     public String getLatestOTP(String email) {
         return otpRepository.findTopByEmailOrderByExpiryDateDesc(email.toLowerCase())
             .map(OTPVerification::getOtp)

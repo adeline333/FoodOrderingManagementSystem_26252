@@ -46,7 +46,13 @@ const Login = () => {
         setResendTimer(60);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      const msg = error.response?.data?.message || 'Login failed';
+      if (msg.toLowerCase().includes('verify your email')) {
+        toast.error('Email not verified. Redirecting to verification...');
+        navigate('/verify-otp', { state: { email: formData.email } });
+      } else {
+        toast.error(msg);
+      }
     }
 
     setLoading(false);
@@ -139,6 +145,23 @@ const Login = () => {
     }
   };
 
+  const handleSkipLoginOtp = async () => {
+    setLoading(true);
+    try {
+      const response = await authApi.skipLoginOtp(formData.email);
+      const { token, user } = response.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      loginWithToken(token, user);
+      toast.success('Login successful!');
+      navigate('/dashboard');
+    } catch (error) {
+      toast.error('Could not skip OTP. Please enter the code above.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // OTP Verification Step
   if (step === 'otp') {
     return (
@@ -220,6 +243,15 @@ const Login = () => {
           >
             Verify & Sign In
           </Button>
+
+          <button
+            type="button"
+            onClick={handleSkipLoginOtp}
+            disabled={loading}
+            className="w-full py-2.5 px-4 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 border border-orange-200 shadow-sm active:scale-95 disabled:opacity-50"
+          >
+            <span>⏭️ Skip OTP & Log In Directly</span>
+          </button>
 
           <div className="text-center">
             <p className="text-gray-500 text-sm">
