@@ -30,16 +30,14 @@ The system features two-factor authentication (OTP) for logins, new registration
 2. **On-Screen Auto-Fill:** Simultaneously, the code is pre-filled directly into the input boxes on screen alongside a testing notice.
 3. **Fault-Tolerant Delivery:** In the event that an email server is delayed, offline, or blocked by cloud hosting firewall policies (such as Render's outbound SMTP restrictions), users are never trapped and can verify immediately to continue using the application.
 
-### Demo Test Accounts
+### Getting Started and Account Registration
 
-Users can register a new account with any email or log in using the pre-configured accounts:
+Visitors can create an account directly on the live platform:
 
-| Portal Role | Email | Description and Capabilities |
-| :--- | :--- | :--- |
-| **Customer** | `adelinetuyizere333@gmail.com` | Browse restaurants, search dishes, filter categories, add to cart, and track orders |
-| **Restaurant Owner** | `philbertmusasira3@gmail.com` | Manage Philbert's Kitchen, update menus, view incoming orders, and track revenue |
-| **Restaurant Owner** | `divyaine086@gmail.com` | Manage Divine Delights, update dishes, and manage kitchen status |
-| **Admin** | `adelinetuyizere5@gmail.com` | Global system analytics, user management, and platform-wide monitoring |
+1. Click **Create an account** on the login page or navigation bar.
+2. Select your desired role (**Customer**, **Restaurant Owner**, **Delivery Person**, or **Admin**).
+3. Fill in your details and Rwandan location hierarchy (Province, District, Sector, Cell, Village).
+4. Verify your account using the instant on-screen OTP code or click skip to navigate directly to your dashboard.
 
 ---
 
