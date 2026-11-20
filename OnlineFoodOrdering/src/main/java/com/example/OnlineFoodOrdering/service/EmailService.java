@@ -40,6 +40,53 @@ public class EmailService {
     @Value("${resend.api.key:}")
     private String resendApiKey;
 
+    @Value("${brevo.api.key:}")
+    private String brevoApiKey;
+
+    private boolean sendViaApi(String toEmail, String subject, String htmlContent) {
+        if (sendViaBrevo(toEmail, subject, htmlContent)) {
+            return true;
+        }
+        return sendViaResend(toEmail, subject, htmlContent);
+    }
+
+    private boolean sendViaBrevo(String toEmail, String subject, String htmlContent) {
+        if (brevoApiKey == null || brevoApiKey.trim().isEmpty()) {
+            return false;
+        }
+
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+            Map<String, Object> body = new HashMap<>();
+            body.put("sender", Map.of("name", appName, "email", fromEmail));
+            body.put("to", List.of(Map.of("email", toEmail)));
+            body.put("subject", subject);
+            body.put("htmlContent", htmlContent);
+
+            String jsonPayload = objectMapper.writeValueAsString(body);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.brevo.com/v3/smtp/email"))
+                .header("api-key", brevoApiKey.trim())
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
+                .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                logger.info("Email sent successfully via Brevo API to: {}", toEmail);
+                return true;
+            } else {
+                logger.warn("Brevo API failed with status {}: {}", response.statusCode(), response.body());
+                return false;
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to send email via Brevo API: {}", e.getMessage());
+            return false;
+        }
+    }
+
     private boolean sendViaResend(String toEmail, String subject, String htmlContent) {
         if (resendApiKey == null || resendApiKey.trim().isEmpty()) {
             return false;
@@ -80,7 +127,7 @@ public class EmailService {
     public void sendLoginOTPEmail(String toEmail, String otp) {
         String htmlContent = buildLoginOTPEmailTemplate(otp);
         String subject = "Login Verification Code - " + appName;
-        if (sendViaResend(toEmail, subject, htmlContent)) {
+        if (sendViaApi(toEmail, subject, htmlContent)) {
             return;
         }
 
@@ -113,7 +160,7 @@ public class EmailService {
     public void sendOTPEmail(String toEmail, String otp) {
         String htmlContent = buildOTPEmailTemplate(otp);
         String subject = "Verify Your Email - " + appName;
-        if (sendViaResend(toEmail, subject, htmlContent)) {
+        if (sendViaApi(toEmail, subject, htmlContent)) {
             return;
         }
 
@@ -147,7 +194,7 @@ public class EmailService {
     public void sendPasswordResetOTPEmail(String toEmail, String otp) {
         String htmlContent = buildPasswordResetOTPEmailTemplate(otp);
         String subject = "Password Reset Code - " + appName;
-        if (sendViaResend(toEmail, subject, htmlContent)) {
+        if (sendViaApi(toEmail, subject, htmlContent)) {
             return;
         }
 
@@ -178,6 +225,13 @@ public class EmailService {
 
     @Async
     public void sendPasswordResetEmail(String toEmail, String resetToken) {
+        String resetLink = frontendUrl + "/reset-password?token=" + resetToken;
+        String htmlContent = buildPasswordResetEmailTemplate(resetLink);
+        String subject = "Password Reset Request - " + appName;
+        if (sendViaApi(toEmail, subject, htmlContent)) {
+            return;
+        }
+
         if (mailSender == null) {
             logger.warn("Mail sender not configured. Reset token for {}: {}", toEmail, resetToken);
             return;
@@ -189,10 +243,7 @@ public class EmailService {
 
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
-            helper.setSubject("Password Reset Request - " + appName);
-
-            String resetLink = frontendUrl + "/reset-password?token=" + resetToken;
-            String htmlContent = buildPasswordResetEmailTemplate(resetLink);
+            helper.setSubject(subject);
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
@@ -206,6 +257,12 @@ public class EmailService {
 
     @Async
     public void sendWelcomeEmail(String toEmail, String firstName) {
+        String htmlContent = buildWelcomeEmailTemplate(firstName);
+        String subject = "Welcome to " + appName;
+        if (sendViaApi(toEmail, subject, htmlContent)) {
+            return;
+        }
+
         if (mailSender == null) {
             logger.warn("Mail sender not configured. Skipping welcome email for: {}", toEmail);
             return;
@@ -217,9 +274,7 @@ public class EmailService {
 
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
-            helper.setSubject("Welcome to " + appName);
-
-            String htmlContent = buildWelcomeEmailTemplate(firstName);
+            helper.setSubject(subject);
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
