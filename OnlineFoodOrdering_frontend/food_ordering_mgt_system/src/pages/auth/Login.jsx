@@ -165,9 +165,27 @@ const Login = () => {
             <span className="font-semibold text-gray-700">{formData.email}</span>
           </p>
           {receivedOtp && (
-            <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-xl text-center">
-              <span className="text-xs font-semibold text-orange-700 uppercase tracking-wider">Verification Code</span>
-              <div className="text-xl font-bold text-orange-600 tracking-widest mt-0.5">{receivedOtp}</div>
+            <div className="mt-4 p-4 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl text-left shadow-sm">
+              <div className="flex items-start gap-3">
+                <span className="text-xl shrink-0">💡</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-amber-900 uppercase tracking-wider">
+                      Demo Testing Mode
+                    </span>
+                    <span className="px-2 py-0.5 bg-amber-200/80 text-amber-900 text-[10px] font-bold rounded-full">
+                      Instant Access
+                    </span>
+                  </div>
+                  <p className="text-xs text-amber-800 mt-1 leading-relaxed">
+                    We've sent a code to your email. If your inbox hasn't received it yet or you're testing this demo, your code has been pre-filled below so you can proceed without waiting!
+                  </p>
+                  <div className="mt-2.5 flex items-center justify-between bg-white/90 px-3 py-1.5 rounded-xl border border-amber-200">
+                    <span className="text-xs font-medium text-gray-500">Your Code:</span>
+                    <span className="text-base font-mono font-extrabold text-orange-600 tracking-widest">{receivedOtp}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
